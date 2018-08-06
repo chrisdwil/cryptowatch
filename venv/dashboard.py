@@ -1,3 +1,4 @@
+import colorama
 from colorama import Fore, Back, Style
 from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 

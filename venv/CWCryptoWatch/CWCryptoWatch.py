@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 import gdax
 import json
 import psycopg2
@@ -11,10 +13,17 @@ class CWCryptoWatch:
     orders_sell = 2
 
     def __init__(self):
-        with open('/Users/cwilkerson/CWCryptoWatch/config.json') as json_data_file:
-            self.configData = json.load(json_data_file)
         self.postgres_object = None
         self.auth_client = None
+        home = os.path.expanduser("~")
+        config_json_file = Path(home + "/etc/config.json")
+        if not config_json_file.is_file():
+            config_json_file = Path("/etc/config.json")
+        elif not config_json_file.is_file():
+            print("config.json was not found in ~/etc or /etc")
+        else:
+            with open(str(config_json_file)) as json_data_file:
+                self.configData = json.load(json_data_file)
 
     def db_connect(self):
         self.postgres_object = psycopg2.connect(
@@ -398,7 +407,7 @@ class CWCryptoWatch:
     def gd_fills(self):
         self.gd_connect()
         request = self.auth_client.get_fills(limit=100)
-        return request
+        return request[0][0]
 
     def gd_orders(self):
         self.gd_connect()

@@ -1,4 +1,3 @@
-import colorama
 from colorama import Fore, Back, Style
 from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 
@@ -174,18 +173,20 @@ for jm in jsonMarkets:
                                       14,
                                       35
                                       )
-        array_results.append([jsonMarketExchangePair['exchange'][0:4],
-                            jsonMarketExchangePair['pair'][0:3],
-                               turtles20[2],
-                               turtles20[0],
-                               pricelast,
-                               rsi14,
-                               sma50,
-                               ema20,
-                               hl55['low'],
-                               hl20['low'],
-                               hl20['high'],
-                               hl55['high']]
+        array_results.append([
+                                jsonMarketExchangePair['exchange'][0:4],
+                                jsonMarketExchangePair['pair'][0:3],
+                                turtles20[2],
+                                turtles20[0],
+                                pricelast,
+                                rsi14,
+                                sma50,
+                                ema20,
+                                hl55['low'],
+                                hl20['low'],
+                                hl20['high'],
+                                hl55['high']
+                            ]
                             )
 
 printCurrency.currency(PrintCurrency.header)

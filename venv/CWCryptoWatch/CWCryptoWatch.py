@@ -8,9 +8,6 @@ import requests
 
 
 class CWCryptoWatch:
-    orders_all = 0
-    orders_buy = 1
-    orders_sell = 2
 
     def __init__(self):
         self.postgres_object = None

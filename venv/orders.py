@@ -94,7 +94,8 @@ for i in array_sell:
     printOrders.sell(printOrders.row,
                      i[0],
                      i[1],
-                     i[2]
+                     i[2],
+                     i[3]
                      )
 
 print
@@ -105,5 +106,6 @@ for i in array_buy:
     printOrders.buy(printOrders.row,
                      i[0],
                      i[1],
-                     i[2]
+                     i[2],
+                     i[3]
                      )

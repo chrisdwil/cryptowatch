@@ -48,45 +48,62 @@ jsonMarkets = cwOrders.db_get("/markets", 60)
 
 jsonOrders = cwOrders.gd_orders()
 
-printOrders.sell(printOrders.header)
-printOrders.sell(printOrders.border)
+array_buy = []
+array_sell = []
 
 for jo in jsonOrders[0]:
     if jo['side'] == "sell":
         if jo['type'] == "limit":
             price_sell = float(jo['size']) * float(jo['price'])
-            printOrders.sell(printOrders.row,
+            array_sell.append([
                              jo['product_id'][0:3].lower(),
                              jo['type'],
                              price_sell,
                              float(jo['price'])
-                             )
+                             ])
         elif jo['type'] == "market":
             price_sell = float(jo['size']) * float(jo['stop_price'])
-            printOrders.sell(printOrders.row,
+            array_sell.append([
                              jo['product_id'][0:3].lower(),
                              jo['type'],
                              price_sell,
                              float(jo['stop_price'])
-                             )
+                             ])
+
+for jo in jsonOrders[0]:
+    if jo['side'] == "buy":
+        if jo['type'] == "limit":
+            array_buy.append([
+                            jo['product_id'][0:3].lower(),
+                            jo['type'],
+                            float(jo['specified_funds']),
+                            float(jo['price'])
+                            ])
+        elif jo['type'] == "market":
+            array_buy.append([
+                            jo['product_id'][0:3].lower(),
+                            jo['type'],
+                            float(jo['specified_funds']),
+                            float(jo['stop_price'])
+                            ])
+
+printOrders.sell(printOrders.header)
+printOrders.sell(printOrders.border)
+
+for i in array_sell:
+    printOrders.sell(printOrders.row,
+                     i[0],
+                     i[1],
+                     i[2]
+                     )
 
 print
 printOrders.buy(printOrders.header)
 printOrders.buy(printOrders.border)
 
-for jo in jsonOrders[0]:
-    if jo['side'] == "buy":
-        if jo['type'] == "limit":
-            printOrders.buy(printOrders.row,
-                            jo['product_id'][0:3].lower(),
-                            jo['type'],
-                            float(jo['specified_funds']),
-                            float(jo['price'])
-                            )
-        elif jo['type'] == "market":
-            printOrders.buy(printOrders.row,
-                            jo['product_id'][0:3].lower(),
-                            jo['type'],
-                            float(jo['specified_funds']),
-                            float(jo['stop_price'])
-                            )
+for i in array_buy:
+    printOrders.buy(printOrders.row,
+                     i[0],
+                     i[1],
+                     i[2]
+                     )

@@ -128,7 +128,6 @@ class PrintCurrency:
 exchangesWatch = ["gdax"]
 pairWatch = ["btcusd", "bchusd", "ethusd", "ltcusd"]
 
-colorama.init()
 cwCurrency = CWCryptoWatch()
 printCurrency = PrintCurrency()
 

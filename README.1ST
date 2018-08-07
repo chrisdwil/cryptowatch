@@ -1,0 +1,32 @@
+this is a set of console tools that can watch the following:
+- gdax orders/fills
+- cryptowatch exchanges/market pairs
+- send alerts for market changes and other stuff
+
+requires postgresql w/ jsonb column support
+
+very early startup code, wouldn't consider anything here develompent engineer grade
+
+in order to use you need to put a config.json file in either ~/etc/ or /etc/, or modify the
+CWCryptoWatch class __init__(self) method to locate your file, the file needs to be formatted as such:
+
+{
+        "postgresql":{
+                "host":"host or ip",
+                "user":"username",
+                "password":"userpass",
+                "dbname":"databasename"
+        },
+        "cryptowatch":{
+                "url":"https://api.cryptowat.ch",
+                "timeout": 3
+        },
+        "coinbasepro":{
+                "passphrase":"get this from gdax",
+                "secret":"get this from gdax",
+                "key":"get this from gdax"
+        },
+        "debug":{
+                "log":"/home/cryptowatch/var/log/debug.log"
+        }
+}

@@ -5,7 +5,7 @@ this is a set of console tools that can watch the following:
 
 requires postgresql w/ jsonb column support
 
-very early startup code, wouldn't consider anything here develompent engineer grade
+very early startup code, wouldn't consider anything here software dev/engineer grade
 
 in order to use you need to put a config.json file in either ~/etc/ or /etc/, or modify the
 CWCryptoWatch class __init__(self) method to locate your file, the file needs to be formatted as such:

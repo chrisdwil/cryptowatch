@@ -70,16 +70,16 @@ class PrintCurrency:
             else:
                 low55color = Fore.RESET
 
-            if ticker >= ema20:
+            if ticker >= ema:
                 emacolor = Fore.GREEN
-            elif ticker >= ema20 - atr * 0.5:
+            elif ticker >= ema - atr * 0.5:
                 emacolor = Fore.YELLOW
             else:
                 emacolor = Fore.RED
 
-            if ticker >= sma50:
+            if ticker >= sma:
                 smacolor = Fore.GREEN
-            elif ticker >= sma50 - atr * 0.5:
+            elif ticker >= sma - atr * 0.5:
                 smacolor = Fore.YELLOW
             else:
                 smacolor = Fore.RED

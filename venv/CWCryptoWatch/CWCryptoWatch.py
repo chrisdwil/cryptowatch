@@ -31,7 +31,7 @@ class CWCryptoWatch:
         lfh.write(datetime.now().isoformat() + " - " + log_string)
         lfh.close()
 
-    def alert(self, alert_string, subject_string=""):
+    def alert(self, alert_type, alert_string, subject_string=""):
         if self.config_data['dev']['mode'] == "production":
             msg = MIMEText(alert_string)
 
@@ -424,10 +424,10 @@ class CWCryptoWatch:
         request = self.auth_client.get_accounts()
         return request
 
-    def gd_fills(self):
+    def gd_fills(self, product_string="BTC-USD"):
         self.gd_connect()
-        request = self.auth_client.get_fills(limit=100)
-        return request[0][0]
+        request = self.auth_client.get_fills(product_id=product_string, limit=100)
+        return request[0]
 
     def gd_orders(self):
         self.gd_connect()

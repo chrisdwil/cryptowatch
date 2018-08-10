@@ -72,10 +72,11 @@ for jo in jsonOrders[0]:
 for jo in jsonOrders[0]:
     if jo['side'] == "buy":
         if jo['type'] == "limit":
+            price_buy = float(jo['size']) * float(jo['price'])
             array_buy.append([
                             jo['product_id'][0:3].lower(),
                             jo['type'],
-                            float(jo['specified_funds']),
+                            price_buy,
                             float(jo['price'])
                             ])
         elif jo['type'] == "market":

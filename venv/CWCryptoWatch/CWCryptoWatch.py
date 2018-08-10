@@ -5,6 +5,9 @@ import json
 import psycopg2
 import re
 import requests
+import smtplib
+from email.mime.text import MIMEText
+from datetime import datetime, date, time
 
 
 class CWCryptoWatch:
@@ -20,14 +23,34 @@ class CWCryptoWatch:
             print("config.json was not found in ~/etc or /etc")
         else:
             with open(str(config_json_file)) as json_data_file:
-                self.configData = json.load(json_data_file)
+                self.config_data = json.load(json_data_file)
+        self.log("Successfully initialized class and loaded configuration file.")
+
+    def log(self, log_string):
+        lfh = open(self.config_data['dev']['log'], "w")
+        lfh.write(datetime.now().isoformat() + " - " + log_string)
+        lfh.close()
+
+    def alert(self, alert_string, subject_string=""):
+        if self.config_data['dev']['mode'] == "production":
+            msg = MIMEText(alert_string)
+
+            msg['Subject'] = subject_string
+            msg['From'] = self.config_data['mail']['from']
+            msg['To'] = self.config_data['mail']['to']
+
+            s = smtplib.SMTP(self.config_data['mail']['smtp'])
+            s.sendmail(msg['From'], msg['To'], msg.as_string())
+            s.quit()
+        else:
+            print(alert_string)
 
     def db_connect(self):
         self.postgres_object = psycopg2.connect(
-            "dbname='" + self.configData['postgresql']['dbname'] +
-            "' user='" + self.configData['postgresql']['user'] +
-            "' host='" + self.configData['postgresql']['host'] +
-            "' password='" + self.configData['postgresql']['password'] +
+            "dbname='" + self.config_data['postgresql']['dbname'] +
+            "' user='" + self.config_data['postgresql']['user'] +
+            "' host='" + self.config_data['postgresql']['host'] +
+            "' password='" + self.config_data['postgresql']['password'] +
             "'")
 
     def db_commit(self):
@@ -81,8 +104,8 @@ class CWCryptoWatch:
     def db_get(self, url, interval):
         interval = interval * 60
         cache_string = str(interval) + " seconds"
-        if self.configData['cryptowatch']['url'] not in url:
-            url = self.configData['cryptowatch']['url'] + url
+        if self.config_data['cryptowatch']['url'] not in url:
+            url = self.config_data['cryptowatch']['url'] + url
 
         tablename = re.split("/", url)
 
@@ -110,7 +133,7 @@ class CWCryptoWatch:
     def db_get_sma(self, exchange, pair, days):
         cache_string = '360 minutes'
         day_string = str(days) + " days"
-        url = self.configData['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
+        url = self.config_data['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
         query = """
                 SELECT SUM(close)/%s
                 FROM (
@@ -141,7 +164,7 @@ class CWCryptoWatch:
     def db_get_ema(self, exchange, pair, days):
         curema = None
         cache_string = '360 minutes'
-        url = self.configData['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
+        url = self.config_data['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
         ema_weight = 2 / (float(days) + 1)
         query = """
                 SELECT columnname
@@ -183,7 +206,7 @@ class CWCryptoWatch:
 
     def db_get_hl(self, exchange, pair, days):
         cache_string = '360 minutes'
-        url = self.configData['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
+        url = self.config_data['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
         query = """
                 SELECT to_json (ohlcResults)
                 FROM (
@@ -219,7 +242,7 @@ class CWCryptoWatch:
     def db_get_turtles(self, exchange, pair, lastprice, balance):
         days = 20
         cache_string = '360 minutes'
-        url = self.configData['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
+        url = self.config_data['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
         query = """
                 SELECT high, low, close
                 FROM (
@@ -279,7 +302,7 @@ class CWCryptoWatch:
     def db_get_rsi(self, exchange, pair, days_rsi, days_weight):
         cache_string = "360 minutes"
         string_days_weight = str(days_weight) + " days"
-        url = self.configData['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
+        url = self.config_data['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
         query = """
                 SELECT close, 0, 0, 0, 0, 0, 0, 0
                 FROM (
@@ -375,25 +398,25 @@ class CWCryptoWatch:
 
     def cw_status(self):
         requests.get(
-            self.configData['cryptowatch']['url'],
-            timeout=self.configData['cryptowatch']['timeout']
+            self.config_data['cryptowatch']['url'],
+            timeout=self.config_data['cryptowatch']['timeout']
         ).json()
 
     def cw_get_url(self, url):
-        if self.configData['cryptowatch']['url'] not in url:
-            url = self.configData['cryptowatch']['url'] + url
+        if self.config_data['cryptowatch']['url'] not in url:
+            url = self.config_data['cryptowatch']['url'] + url
 
         results = requests.get(
             url,
-            timeout=self.configData['cryptowatch']['timeout']
+            timeout=self.config_data['cryptowatch']['timeout']
         ).json()
 
         return results
 
     def gd_connect(self):
-        self.auth_client = gdax.AuthenticatedClient(self.configData['coinbasepro']['key'],
-                                                    self.configData['coinbasepro']['secret'],
-                                                    self.configData['coinbasepro']['passphrase']
+        self.auth_client = gdax.AuthenticatedClient(self.config_data['coinbasepro']['key'],
+                                                    self.config_data['coinbasepro']['secret'],
+                                                    self.config_data['coinbasepro']['passphrase']
                                                     )
 
     def gd_accounts(self):

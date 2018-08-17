@@ -31,7 +31,7 @@ class CWCryptoWatch:
         lfh.write(datetime.now().isoformat() + " - " + log_string)
         lfh.close()
 
-    def alert(self, alert_type, alert_string, subject_string=""):
+    def al_send(self, alert_type, alert_string, subject_string=""):
         if self.config_data['dev']['mode'] == "production":
             msg = MIMEText(alert_string)
 
@@ -44,6 +44,13 @@ class CWCryptoWatch:
             s.quit()
         else:
             print(alert_string)
+
+    def al_ticker_turtles(self, pair, ticker, atr):
+        atr_change = 0.33
+
+        query = """
+                SELECT meta->
+                """
 
     def db_connect(self):
         self.postgres_object = psycopg2.connect(
@@ -63,9 +70,10 @@ class CWCryptoWatch:
 
     def db_initialize(self):
         tablenames = ["assets", "exchanges", "markets"]
-        querydrop = "DROP TABLE tablename"
 
-        querycreate = """
+        querycreatetablearray = """
+                        DROP TABLE public.tablename;
+                        
                         CREATE TABLE public.tablename
                         (
                             id serial NOT NULL PRIMARY KEY,
@@ -78,15 +86,32 @@ class CWCryptoWatch:
                         ALTER TABLE public.tablename
                         OWNER to pgadmin;
                     """
+        querycreatetablealerts = """
+                        DROP TABLE public.alerts;
+                        
+                        CREATE TABLE public.alerts
+                        (
+                            id serial NOT NULL PRIMARY KEY,
+                            ts timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                            alert text NOT NULL,
+                            message text NOT NULL,
+                            meta jsonb,
+                        )
+                        TABLESPACE pg_default;
+                        
+                        ALTER TABLE public.alerts
+                        OWNER to pgadmin;                    
+                    """
 
         self.db_connect()
-        for name in tablenames:
-            loopquerydrop = re.sub(r"tablename", name, querydrop)
-            loopquerycreate = re.sub(r"tablename", name, querycreate)
+        cursor_object = self.postgres_object.cursor()
 
-            cursor_object = self.postgres_object.cursor()
-            cursor_object.execute(loopquerydrop)
+        for name in tablenames:
+            loopquerycreate = re.sub(r"tablename", name, querycreatetablearray)
+
             cursor_object.execute(loopquerycreate)
+
+        cursor_object.execute(createtablealerts)
 
         self.db_commit()
         self.db_close()

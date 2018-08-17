@@ -170,7 +170,7 @@ for jm in jsonMarkets:
         rsi14 = cwCurrency.db_get_rsi(jsonMarketExchangePair['exchange'],
                                       jsonMarketExchangePair['pair'],
                                       14,
-                                      25
+                                      33
                                       )
         array_results.append([
                                 jsonMarketExchangePair['exchange'][0:4],

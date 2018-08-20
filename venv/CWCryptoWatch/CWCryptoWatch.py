@@ -33,7 +33,7 @@ class CWCryptoWatch:
                         "fills": {
                             "alert": False,
                             "message": "",
-                            "order_ids": []
+                            "fill_list": []
                             },
                         "stoploss": {
                             "alert": False,
@@ -433,7 +433,7 @@ class CWCryptoWatch:
 
     def gd_fills(self, product_string="BTC-USD"):
         self.gd_connect()
-        request = self.auth_client.get_fills(product_id=product_string, limit=100)
+        request = self.auth_client.get_fills(product_id=product_string, limit=1)
         return request[0]
 
     def gd_orders(self):
@@ -498,7 +498,7 @@ class CWCryptoWatch:
         if not previous_alert:
             self.alerts_json_data['trending']['pairs'] = current_atr_list
             self.alerts_json_data['trending']['alert'] = True
-            self.alerts_json_data['trending']['message'] = "TRENDING: all"
+            self.alerts_json_data['trending']['message'] = "all"
         else:
             for jc in current_atr_list:
                 for jp in previous_alert['pairs']:
@@ -516,11 +516,29 @@ class CWCryptoWatch:
                             json_pair_list.append(jp)
             self.alerts_json_data['trending']['pairs'] = json_pair_list
 
-    def al_fills(self, pair):
+    def al_fills(self, current_fill_list):
         # select ts, callresult from alerts where (callresult->'fills'->'orders')::jsonb ? '1';
         # example of how to search for specific fill/order id in json/pgsql, use this later
 
-        return False
+        previous_alert = self.al_db_get("fills")
+
+        json_fill_list = []
+        if not previous_alert:
+            self.alerts_json_data['fills']['fill_list'] = current_fill_list
+            self.alerts_json_data['fills']['alert'] = True
+            self.alerts_json_data['fills']['message'] = "all"
+        else:
+            for jc in current_fill_list:
+                for jp in previous_alert['fill_list']:
+                    if jp['product_id'] == jc['product_id']:
+                        if jc['trade_id'] > jp['trade_id']:
+                            self.alerts_json_data['fills']['message'] = \
+                                self.alerts_json_data['fills']['message'] + " " + jc['product_id']
+                            self.alerts_json_data['fills']['alert'] = True
+                            json_fill_list.append(jc)
+                        else:
+                            json_fill_list.append(jp)
+            self.alerts_json_data['fills']['fill_list'] = json_fill_list
 
     def al_stoploss(self, accounts):
         return False

@@ -4,6 +4,7 @@ from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 exchangesWatch = ["gdax"]
 pairWatch = ["btcusd", "bchusd", "ethusd", "ltcusd"]
 gdPairFills = ["BTC-USD", "ETH-USD", "BCH-USD", "LTC-USD"]
+gdFillsList = []
 
 cwAlerts = CWCryptoWatch()
 
@@ -27,9 +28,9 @@ for jm in jsonMarkets:
         jsonMarketExchangePairSummary = cwAlerts.db_get(jsonMarketExchangePair['routes']['summary'], 1)
 
         jsonPairTrending = {
-            "pair" : jm['pair'],
-            "last" : jsonMarketExchangePairSummary['price']['last'],
-            "atr" : cwAlerts.db_get_turtles(jsonMarketExchangePair['exchange'],
+            "pair": jm['pair'],
+            "last": jsonMarketExchangePairSummary['price']['last'],
+            "atr": cwAlerts.db_get_turtles(jsonMarketExchangePair['exchange'],
                                               jsonMarketExchangePair['pair'],
                                               jsonMarketExchangePairSummary['price']['last'],
                                               totalBalance
@@ -37,6 +38,10 @@ for jm in jsonMarkets:
         }
         jsonPairList.append(jsonPairTrending)
 
+for jf in gdPairFills:
+    gdFillsList.append(cwAlerts.gd_fills(jf)[0])
+
 cwAlerts.al_trending(jsonPairList)
+cwAlerts.al_fills(gdFillsList)
 cwAlerts.al_send()
 print(datetime.now().isoformat() + " - notifier executed")

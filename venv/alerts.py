@@ -17,7 +17,7 @@ for ja in jsonAccountsList:
     if ja['currency'] != "USD":
         jsonMarketExchangePairSummary = cwAlerts.db_get("/markets/gdax/" + ja['currency'].lower() + "usd/summary", 1)
         totalBalance += float(ja['balance']) * float(jsonMarketExchangePairSummary['price']['last'])
-        if (float(ja['available']) * float(jsonMarketExchangePairSummary['price']['last'])) > 1:
+        if (float(ja['available']) * float(jsonMarketExchangePairSummary['price']['last'])) > 10:
             jsonStopLossList.append(ja['currency'])
     else:
         totalBalance += float(ja['balance'])

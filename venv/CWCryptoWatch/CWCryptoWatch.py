@@ -24,7 +24,7 @@ class CWCryptoWatch:
         else:
             with open(str(config_json_file)) as json_data_file:
                 self.config_data = json.load(json_data_file)
-        self.al_json = {
+        self.alerts_json_data = {
                         "trending" : {
                             "alert" : False,
                             "message" : "",
@@ -44,7 +44,7 @@ class CWCryptoWatch:
 
     def log(self, log_string):
         lfh = open(self.config_data['dev']['log'], "w+")
-        lfh.(datetime.now().isoformat() + " - " + log_string)
+        lfh.write(datetime.now().isoformat() + " - " + log_string)
         lfh.close()
 
     def db_connect(self):

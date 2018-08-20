@@ -37,7 +37,8 @@ class CWCryptoWatch:
                             },
                         "stoploss": {
                             "alert": False,
-                            "message": ""
+                            "message": "",
+                            "last_alert": ""
                             }
                         }
         self.log("Successfully initialized class and loaded configuration file.")
@@ -540,5 +541,14 @@ class CWCryptoWatch:
                             json_fill_list.append(jp)
             self.alerts_json_data['fills']['fill_list'] = json_fill_list
 
-    def al_stoploss(self, accounts):
-        return False
+    def al_stoploss(self, stoploss_list):
+
+        previous_alert = self.al_db_get("stoploss")
+
+        if previous_alert:
+            if stoploss_list:
+                self.alerts_json_data['stoploss']['alert'] = True
+                self.alerts_json_data['stoploss']['last_alert'] = str(datetime.now())
+                for sl in stoploss_list:
+                    self.alerts_json_data['stoploss']['message'] = \
+                        self.alerts_json_data['stoploss']['message'] + sl + " "

@@ -4,18 +4,21 @@ from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 exchangesWatch = ["gdax"]
 pairWatch = ["btcusd", "bchusd", "ethusd", "ltcusd"]
 gdPairFills = ["BTC-USD", "ETH-USD", "BCH-USD", "LTC-USD"]
-gdFillsList = []
+jsonFillsList = []
+jsonStopLossList = []
 
 cwAlerts = CWCryptoWatch()
 
 jsonMarkets = cwAlerts.db_get("/markets", 60)
-jsonAccounts = cwAlerts.gd_accounts()
+jsonAccountsList = cwAlerts.gd_accounts()
 
 totalBalance = 0
-for ja in jsonAccounts:
+for ja in jsonAccountsList:
     if ja['currency'] != "USD":
         jsonMarketExchangePairSummary = cwAlerts.db_get("/markets/gdax/" + ja['currency'].lower() + "usd/summary", 1)
         totalBalance += float(ja['balance']) * float(jsonMarketExchangePairSummary['price']['last'])
+        if (float(ja['balance']) * float(jsonMarketExchangePairSummary['price']['last'])) > 1:
+            jsonStopLossList.append(ja['currency'])
     else:
         totalBalance += float(ja['balance'])
 
@@ -39,9 +42,10 @@ for jm in jsonMarkets:
         jsonPairList.append(jsonPairTrending)
 
 for jf in gdPairFills:
-    gdFillsList.append(cwAlerts.gd_fills(jf)[0])
+    jsonFillsList.append(cwAlerts.gd_fills(jf)[0])
 
 cwAlerts.al_trending(jsonPairList)
-cwAlerts.al_fills(gdFillsList)
+cwAlerts.al_fills(jsonFillsList)
+cwAlerts.al_stoploss(jsonStopLossList)
 cwAlerts.al_send()
 print(datetime.now().isoformat() + " - notifier executed")

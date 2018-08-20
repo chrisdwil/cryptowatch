@@ -44,7 +44,7 @@ class CWCryptoWatch:
 
     def log(self, log_string):
         lfh = open(self.config_data['dev']['log'], "a+")
-        lfh.write(datetime.now().isoformat() + " - " + log_string)
+        lfh.write(datetime.now().isoformat() + " - " + log_string + "\n")
         lfh.close()
 
     def db_connect(self):

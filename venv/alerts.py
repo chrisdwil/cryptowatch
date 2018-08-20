@@ -10,8 +10,6 @@ cwAlerts = CWCryptoWatch()
 jsonMarkets = cwAlerts.db_get("/markets", 60)
 jsonAccounts = cwAlerts.gd_accounts()
 
-i=0
-
 totalBalance = 0
 for ja in jsonAccounts:
     if ja['currency'] != "USD":

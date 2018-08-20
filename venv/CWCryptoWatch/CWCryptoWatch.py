@@ -25,19 +25,19 @@ class CWCryptoWatch:
             with open(str(config_json_file)) as json_data_file:
                 self.config_data = json.load(json_data_file)
         self.alerts_json_data = {
-                        "trending" : {
-                            "alert" : False,
-                            "message" : "",
-                            "pairs" : []
+                        "trending": {
+                            "alert": False,
+                            "message": "",
+                            "pairs": []
                             },
-                        "fills" : {
-                            "alert" : False,
-                            "message" : "",
-                            "order_ids" : []
+                        "fills": {
+                            "alert": False,
+                            "message": "",
+                            "order_ids": []
                             },
-                        "stoploss" : {
-                            "alert" : False,
-                            "message" : ""
+                        "stoploss": {
+                            "alert": False,
+                            "message": ""
                             }
                         }
         self.log("Successfully initialized class and loaded configuration file.")
@@ -89,8 +89,6 @@ class CWCryptoWatch:
             loopquerycreate = re.sub(r"tablename", name, querycreatetablearray)
 
             cursor_object.execute(loopquerycreate)
-
-        cursor_object.execute(createtablealerts)
 
         self.db_commit()
         self.db_close()
@@ -482,7 +480,6 @@ class CWCryptoWatch:
                 if self.config_data['dev']['mode'] == "production":
                     msg = MIMEText(als + ": " + self.alerts_json_data[als]['message'])
 
-                    msg['Subject'] = subject_string
                     msg['From'] = self.config_data['mail']['from']
                     msg['To'] = self.config_data['mail']['to']
 
@@ -498,7 +495,7 @@ class CWCryptoWatch:
         previous_alert = self.al_db_get("trending")
 
         json_pair_list = []
-        if previous_alert == []:
+        if not previous_alert:
             self.alerts_json_data['trending']['pairs'] = current_atr_list
             self.alerts_json_data['trending']['alert'] = True
             self.alerts_json_data['trending']['message'] = "TRENDING: all"

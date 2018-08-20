@@ -24,11 +24,27 @@ class CWCryptoWatch:
         else:
             with open(str(config_json_file)) as json_data_file:
                 self.config_data = json.load(json_data_file)
+        self.al_json = {
+                        "trending" : {
+                            "alert" : False,
+                            "message" : "",
+                            "pairs" : []
+                            },
+                        "fills" : {
+                            "alert" : False,
+                            "message" : "",
+                            "order_ids" : []
+                            },
+                        "stoploss" : {
+                            "alert" : False,
+                            "message" : ""
+                            }
+                        }
         self.log("Successfully initialized class and loaded configuration file.")
 
     def log(self, log_string):
-        lfh = open(self.config_data['dev']['log'], "w")
-        lfh.write(datetime.now().isoformat() + " - " + log_string)
+        lfh = open(self.config_data['dev']['log'], "w+")
+        lfh.(datetime.now().isoformat() + " - " + log_string)
         lfh.close()
 
     def db_connect(self):
@@ -426,24 +442,6 @@ class CWCryptoWatch:
         self.gd_connect()
         request = self.auth_client.get_orders()
         return request
-
-    def al_init(self):
-        self.al_json = {
-                        "trending" : {
-                            "alert" : False,
-                            "message" : "",
-                            "pairs" : []
-                            },
-                        "fills" : {
-                            "alert" : False,
-                            "message" : "",
-                            "order_ids" : []
-                            },
-                        "stoploss" : {
-                            "alert" : False,
-                            "message" : ""
-                            }
-                        }
 
     def al_db_put(self, callurl, json_object):
         return True

@@ -1,3 +1,4 @@
+from datetime import datetime, date, time
 from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 
 exchangesWatch = ["gdax"]
@@ -40,3 +41,4 @@ for jm in jsonMarkets:
 
 cwAlerts.al_trending(jsonPairList)
 cwAlerts.al_send()
+print(datetime.now().isoformat() + " - notifier executed")

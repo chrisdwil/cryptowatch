@@ -43,7 +43,7 @@ class CWCryptoWatch:
         self.log("Successfully initialized class and loaded configuration file.")
 
     def log(self, log_string):
-        lfh = open(self.config_data['dev']['log'], "w+")
+        lfh = open(self.config_data['dev']['log'], "a+")
         lfh.write(datetime.now().isoformat() + " - " + log_string)
         lfh.close()
 

@@ -443,22 +443,87 @@ class CWCryptoWatch:
         request = self.auth_client.get_orders()
         return request
 
-    def al_db_put(self, callurl, json_object):
-        return True
+    def al_db_put(self):
+        query = """
+                    INSERT INTO alerts ( callurl, callresult ) 
+                    VALUES ( %s, %s )
+                """
+
+        self.db_connect()
+        cursor_object = self.postgres_object.cursor()
+        cursor_object.execute(query, ("alerts", json.dumps(self.alerts_json_data)))
+        self.db_commit()
+        self.db_close()
 
     def al_db_get(self, callurl):
-        return True
+        query = """
+                    SELECT callresult->%s
+                    FROM alerts
+                    WHERE callresult->%s IS NOT NULL
+                    ORDER BY ts DESC LIMIT 1
+                """
 
-    def al_send(self, alert_type, alert_string, subject_string=""):
-        if self.config_data['dev']['mode'] == "production":
-            msg = MIMEText(alert_string)
+        self.db_connect()
+        cursor_object = self.postgres_object.cursor()
+        cursor_object.execute(query, (callurl, callurl,))
+        result = cursor_object.fetchone()
+        self.db_close()
 
-            msg['Subject'] = subject_string
-            msg['From'] = self.config_data['mail']['from']
-            msg['To'] = self.config_data['mail']['to']
+        if result == None:
+            return []
 
-            s = smtplib.SMTP(self.config_data['mail']['smtp'])
-            s.sendmail(msg['From'], msg['To'], msg.as_string())
-            s.quit()
+        return result[0]
+
+    def al_send(self):
+        self.al_db_put()
+
+        for als in [ "trending", "fills", "stoploss" ]:
+            if self.alerts_json_data[als]['alert']:
+                if self.config_data['dev']['mode'] == "production":
+                    msg = MIMEText(als + ": " + self.alerts_json_data[als]['message'])
+
+                    msg['Subject'] = subject_string
+                    msg['From'] = self.config_data['mail']['from']
+                    msg['To'] = self.config_data['mail']['to']
+
+                    s = smtplib.SMTP(self.config_data['mail']['smtp'])
+                    s.sendmail(msg['From'], msg['To'], msg.as_string())
+                    s.quit()
+                else:
+                    print(als + ": " + self.alerts_json_data[als]['message'])
+
+    def al_trending(self, current_atr_list):
+        atr_change = 0.33
+
+        previous_alert = self.al_db_get("trending")
+
+        json_pair_list = []
+        if previous_alert == []:
+            self.alerts_json_data['trending']['pairs'] = current_atr_list
+            self.alerts_json_data['trending']['alert'] = True
+            self.alerts_json_data['trending']['message'] = "TRENDING: all"
         else:
-            print(alert_string)
+            for jc in current_atr_list:
+                for jp in previous_alert['pairs']:
+                    if jp['pair'] == jc['pair']:
+                        if jc['last'] >= jp['last'] + jc['atr'] * atr_change:
+                            self.alerts_json_data['trending']['message'] = \
+                                self.alerts_json_data['trending']['message'] + jc['pair'] + "+ "
+                            self.alerts_json_data['trending']['alert'] = True
+                            json_pair_list.append(jc)
+                        elif jc['last'] <= jp['last'] - jc['atr'] * atr_change:
+                            self.alerts_json_data['trending']['message'] = \
+                                self.alerts_json_data['trending']['message'] + jc['pair'] + "- "
+                            json_pair_list.append(jc)
+                        else:
+                            json_pair_list.append(jp)
+            self.alerts_json_data['trending']['pairs'] = json_pair_list
+
+    def al_fills(self, pair):
+        # select ts, callresult from alerts where (callresult->'fills'->'orders')::jsonb ? '1';
+        # example of how to search for specific fill/order id in json/pgsql, use this later
+
+        return False
+
+    def al_stoploss(self, accounts):
+        return False

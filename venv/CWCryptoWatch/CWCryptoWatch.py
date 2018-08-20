@@ -31,27 +31,6 @@ class CWCryptoWatch:
         lfh.write(datetime.now().isoformat() + " - " + log_string)
         lfh.close()
 
-    def al_send(self, alert_type, alert_string, subject_string=""):
-        if self.config_data['dev']['mode'] == "production":
-            msg = MIMEText(alert_string)
-
-            msg['Subject'] = subject_string
-            msg['From'] = self.config_data['mail']['from']
-            msg['To'] = self.config_data['mail']['to']
-
-            s = smtplib.SMTP(self.config_data['mail']['smtp'])
-            s.sendmail(msg['From'], msg['To'], msg.as_string())
-            s.quit()
-        else:
-            print(alert_string)
-
-    def al_ticker_turtles(self, pair, ticker, atr):
-        atr_change = 0.33
-
-        query = """
-                SELECT meta->
-                """
-
     def db_connect(self):
         self.postgres_object = psycopg2.connect(
             "dbname='" + self.config_data['postgresql']['dbname'] +
@@ -69,7 +48,7 @@ class CWCryptoWatch:
         return True
 
     def db_initialize(self):
-        tablenames = ["assets", "exchanges", "markets"]
+        tablenames = ["assets", "exchanges", "markets", "alerts"]
 
         querycreatetablearray = """
                         DROP TABLE public.tablename;
@@ -85,22 +64,6 @@ class CWCryptoWatch:
 
                         ALTER TABLE public.tablename
                         OWNER to pgadmin;
-                    """
-        querycreatetablealerts = """
-                        DROP TABLE public.alerts;
-                        
-                        CREATE TABLE public.alerts
-                        (
-                            id serial NOT NULL PRIMARY KEY,
-                            ts timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                            alert text NOT NULL,
-                            message text NOT NULL,
-                            meta jsonb,
-                        )
-                        TABLESPACE pg_default;
-                        
-                        ALTER TABLE public.alerts
-                        OWNER to pgadmin;                    
                     """
 
         self.db_connect()
@@ -119,7 +82,10 @@ class CWCryptoWatch:
     def db_put(self, url, json_object):
         tablename = re.split("/", url)
 
-        query = """INSERT INTO tablename ( callurl, callresult ) VALUES ( %s, %s )"""
+        query = """
+                    INSERT INTO tablename ( callurl, callresult ) 
+                    VALUES ( %s, %s )
+                """
         query = re.sub("tablename", tablename[3], query)
 
         cursor_object = self.postgres_object.cursor()
@@ -134,10 +100,12 @@ class CWCryptoWatch:
 
         tablename = re.split("/", url)
 
-        query = """SELECT jsonb_extract_path(callresult, 'result') 
-                   FROM tablename
-                   WHERE callurl = %s AND ts >= CURRENT_TIMESTAMP - interval %s
-                   ORDER BY ts DESC LIMIT 1"""
+        query = """
+                    SELECT jsonb_extract_path(callresult, 'result') 
+                    FROM tablename
+                    WHERE callurl = %s AND ts >= CURRENT_TIMESTAMP - interval %s
+                    ORDER BY ts DESC LIMIT 1
+                """
 
         query = re.sub("tablename", tablename[3], query)
 
@@ -458,3 +426,41 @@ class CWCryptoWatch:
         self.gd_connect()
         request = self.auth_client.get_orders()
         return request
+
+    def al_init(self):
+        self.al_json = {
+                        "trending" : {
+                            "alert" : False,
+                            "message" : "",
+                            "pairs" : []
+                            },
+                        "fills" : {
+                            "alert" : False,
+                            "message" : "",
+                            "order_ids" : []
+                            },
+                        "stoploss" : {
+                            "alert" : False,
+                            "message" : ""
+                            }
+                        }
+
+    def al_db_put(self, callurl, json_object):
+        return True
+
+    def al_db_get(self, callurl):
+        return True
+
+    def al_send(self, alert_type, alert_string, subject_string=""):
+        if self.config_data['dev']['mode'] == "production":
+            msg = MIMEText(alert_string)
+
+            msg['Subject'] = subject_string
+            msg['From'] = self.config_data['mail']['from']
+            msg['To'] = self.config_data['mail']['to']
+
+            s = smtplib.SMTP(self.config_data['mail']['smtp'])
+            s.sendmail(msg['From'], msg['To'], msg.as_string())
+            s.quit()
+        else:
+            print(alert_string)

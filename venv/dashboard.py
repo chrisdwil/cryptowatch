@@ -149,7 +149,7 @@ for jm in jsonMarkets:
         jsonMarketExchangePairSummary = cwCurrency.db_get(jsonMarketExchangePair['routes']['summary'], 1)
         jsonMarketExchangeOHLC = cwCurrency.db_get(jsonMarketExchangePair['routes']['ohlc'], 300)
 
-        pricelast = jsonMarketExchangePairSummary['price']['last']
+        price_last = jsonMarketExchangePairSummary['price']['last']
         sma50 = cwCurrency.db_get_sma(jsonMarketExchangePair['exchange'],
                                       jsonMarketExchangePair['pair'],
                                       50)
@@ -177,7 +177,7 @@ for jm in jsonMarkets:
                                 jsonMarketExchangePair['pair'][0:3],
                                 turtles20[2],
                                 turtles20[0],
-                                pricelast,
+                                price_last,
                                 rsi14,
                                 sma50,
                                 ema20,

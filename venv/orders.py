@@ -4,9 +4,32 @@ from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 
 class PrintOrders:
 
-    def prn(self, json_orders_list):
+    json_order_data = {
+        "sell": [
+            {
+                "tag": "header",
+                "product_id": "cur",
+                "type": "type",
+                "price_current": "cur$",
+                "price_sell": "sel$",
+                "price": "trig"
+            }
+        ],
+        "buy": [
+            {
+                "tag": "header",
+                "product_id": "cur",
+                "type": "type",
+                "u_size": "size",
+                "price_buy": "pur$",
+                "price": "trig"
+            }
+        ]
+    }
 
-        for jol in json_orders_list['sell']:
+    def prn(self):
+
+        for jol in self.json_order_data['sell']:
             if jol['tag'] == "header":
                 print "%3s %7s %5s %5s %5s" % (
                     jol['product_id'],
@@ -29,21 +52,23 @@ class PrintOrders:
 
         print
 
-        for jol in json_orders_list['buy']:
+        for jol in self.json_order_data['buy']:
             if jol['tag'] == "header":
-                print "%3s %7s %5s %5s" % (
+                print "%3s %7s %5s %5s %5s" % (
                     jol['product_id'],
                     jol['type'],
+                    jol['u_size'],
                     jol['price_buy'],
                     jol['price']
                 )
-                print("-----------------------")
+                print("-----------------------------")
             elif jol['tag'] == "row":
-                print "%3s|%s%7s%s|%5d|%5d" % (
+                print "%3s|%s%7s%s|%1.3f|%5d|%5d" % (
                     jol['product_id'],
                     Fore.GREEN,
                     jol['type'],
                     Fore.RESET,
+                    jol['u_size'],
                     jol['price_buy'],
                     jol['price']
                 )
@@ -55,35 +80,13 @@ jsonMarkets = cwOrders.db_get("/markets", 60)
 
 jsonOrders = cwOrders.gd_orders()
 
-jsonOrdersList = {
-    "sell": [
-        {
-            "tag": "header",
-            "product_id": "cur",
-            "type": "type",
-            "price_current": "cur$",
-            "price_sell": "sel$",
-            "price": "trig"
-        }
-    ],
-    "buy": [
-        {
-            "tag": "header",
-            "product_id": "cur",
-            "type": "type",
-            "price_buy": "pur$",
-            "price": "trig"
-        }
-    ]
-}
-
 for jo in jsonOrders[0]:
     jsonMarketExchangePairSummary = cwOrders.db_get("/markets/gdax/" + jo['product_id'][0:3].lower() + "usd/summary", 1)
     if jo['side'] == "sell":
         price_cur = float(jo['size']) * float(jsonMarketExchangePairSummary['price']['last'])
         if jo['type'] == "limit":
             price_sell = float(jo['size']) * float(jo['price'])
-            jsonOrdersList['sell'].append(
+            orderDashboard.json_order_data['sell'].append(
                 {
                     "tag": "row",
                     "product_id": jo['product_id'][0:3].lower(),
@@ -95,7 +98,7 @@ for jo in jsonOrders[0]:
             )
         elif jo['type'] == "market":
             price_sell = float(jo['size']) * float(jo['stop_price'])
-            jsonOrdersList['sell'].append(
+            orderDashboard.json_order_data['sell'].append(
                 {
                     "tag": "row",
                     "product_id": jo['product_id'][0:3].lower(),
@@ -107,27 +110,32 @@ for jo in jsonOrders[0]:
             )
 
 for jo in jsonOrders[0]:
+    jsonMarketExchangePairSummary = cwOrders.db_get("/markets/gdax/" + jo['product_id'][0:3].lower() + "usd/summary", 1)
     if jo['side'] == "buy":
         if jo['type'] == "limit":
             price_buy = float(jo['size']) * float(jo['price'])
-            jsonOrdersList['buy'].append(
+            unitSize = price_buy / float(jo['price'])
+            orderDashboard.json_order_data['buy'].append(
                 {
                     "tag": "row",
                     "product_id": jo['product_id'][0:3].lower(),
                     "type": jo['type'],
+                    "u_size": unitSize,
                     "price_buy": price_buy,
                     "price": float(jo['price'])
                 }
             )
         elif jo['type'] == "market":
-            jsonOrdersList['buy'].append(
+            unitSize = float(jo['specified_funds']) / float(jo['stop_price'])
+            orderDashboard.json_order_data['buy'].append(
                 {
                     "tag": "row",
                     "product_id": jo['product_id'][0:3].lower(),
                     "type": jo['type'],
+                    "u_size": unitSize,
                     "price_buy": float(jo['specified_funds']),
                     "price": float(jo['stop_price'])
                 }
             )
 
-orderDashboard.prn(jsonOrdersList)
+orderDashboard.prn()

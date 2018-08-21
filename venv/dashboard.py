@@ -4,9 +4,30 @@ from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 
 class PrintMarkets:
 
-    def prn(self, json_dashboard_list):
+    json_market_data = {
+        "balance": 0,
+        "market": [
+            {
+                "tag": "header",
+                "exchange": "exc",
+                "pair": "cur",
+                "u_size": "usz",
+                "atr": "atr",
+                "last": "tkr",
+                "rsi": "rsi",
+                "sma_50": "s50",
+                "ema_20": "e20",
+                "low_55": "l55",
+                "low_20": "l20",
+                "high_20": "h20",
+                "high_55": "h55"
+            }
+        ]
+    }
 
-        for jdl in json_dashboard_list['market']:
+    def prn(self):
+
+        for jdl in self.json_market_data['market']:
             if jdl['tag'] == "header":
                 print("%4s %4s %5s %5s %5s %5s %5s %5s %5s %5s %5s %5s" % (
                     jdl['exchange'],
@@ -24,7 +45,7 @@ class PrintMarkets:
                     )
                 )
                 print("---------------------------- $%10.2f ----------------------------" % (
-                    round(json_dashboard_list['balance'], 2)
+                    round(self.json_market_data['balance'], 2)
                     )
                 )
             elif jdl['tag'] == "row":
@@ -119,33 +140,13 @@ marketDashboard = PrintMarkets()
 jsonMarkets = cwCurrency.db_get("/markets", 60)
 jsonAccounts = cwCurrency.gd_accounts()
 
-jsonDashboardList = {
-    "balance": 0,
-    "market": [
-        {
-            "tag": "header",
-            "exchange": "exc",
-            "pair": "cur",
-            "u_size": "usz",
-            "atr": "atr",
-            "last": "tkr",
-            "rsi": "rsi",
-            "sma_50": "s50",
-            "ema_20": "e20",
-            "low_55": "l55",
-            "low_20": "l20",
-            "high_20": "h20",
-            "high_55": "h55"
-        }
-    ]
-}
-
 for ja in jsonAccounts:
     if ja['currency'] != "USD":
         jsonMarketExchangePairSummary = cwCurrency.db_get("/markets/gdax/" + ja['currency'].lower() + "usd/summary", 1)
-        jsonDashboardList['balance'] += float(ja['balance']) * float(jsonMarketExchangePairSummary['price']['last'])
+        marketDashboard.json_market_data['balance'] += float(ja['balance']) * \
+                                                       float(jsonMarketExchangePairSummary['price']['last'])
     else:
-        jsonDashboardList['balance'] += float(ja['balance'])
+        marketDashboard.json_market_data['balance'] += float(ja['balance'])
 
 for jm in jsonMarkets:
     if (jm['exchange'] in exchangesWatch) & (jm['pair'] in pairWatch):
@@ -162,9 +163,9 @@ for jm in jsonMarkets:
         turtles20 = cwCurrency.db_get_turtles(jsonMarketExchangePair['exchange'],
                                               jsonMarketExchangePair['pair'],
                                               jsonMarketExchangePairSummary['price']['last'],
-                                              jsonDashboardList['balance']
+                                              marketDashboard.json_market_data['balance']
                                               )
-        jsonDashboardList['market'].append(
+        marketDashboard.json_market_data['market'].append(
             {
                 "tag": "row",
                 "exchange": jsonMarketExchangePair['exchange'][0:4],
@@ -190,4 +191,4 @@ for jm in jsonMarkets:
             }
         )
 
-marketDashboard.prn(jsonDashboardList)
+marketDashboard.prn()

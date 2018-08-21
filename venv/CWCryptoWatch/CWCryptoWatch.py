@@ -468,7 +468,7 @@ class CWCryptoWatch:
         result = cursor_object.fetchone()
         self.db_close()
 
-        if result == None:
+        if not result:
             return []
 
         return result[0]

@@ -4,42 +4,51 @@ from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 
 class PrintOrders:
 
-    none = 0
-    header = 1
-    border = 2
-    row = 3
+    def prn(self, json_orders_list):
 
-    def sell(self,
-             type_print=0,
-             currency="None",
-             type_sell="None",
-             price_cur=0,
-             price_sell=0,
-             trigger=0
-             ):
-        if type_print == PrintOrders.header:
-            print "%3s %7s %5s %5s %5s" % ("cur", "type", "cur$", "sel$", "trig")
-        elif type_print == PrintOrders.border:
-            print "-----------------------------"
-        elif type_print == PrintOrders.row:
-            print "%3s|%s%7s%s|%5d|%5d|%5d" % (currency, Fore.RED, type_sell, Fore.RESET, price_cur, price_sell, trigger)
-        elif type_print == PrintOrders.none:
-            print "Must include PrintOrders.header|border|row in PrintOrders.sell(args)"
+        # print orders sell
+        for jol in json_orders_list['sell']:
+            if jol['tag'] == "header":
+                print "%3s %7s %5s %5s %5s" % (
+                    jol['product_id'],
+                    jol['type'],
+                    jol['price_current'],
+                    jol['price_sell'],
+                    jol['price']
+                )
+                print "-----------------------------"
+            elif jol['tag'] == "row":
+                print "%3s|%s%7s%s|%5d|%5d|%5d" % (
+                    jol['product_id'],
+                    Fore.RED,
+                    jol['type'],
+                    Fore.RESET,
+                    jol['price_current'],
+                    jol['price_sell'],
+                    jol['price']
+                )
 
-    def buy(self, type_print=0,
-            currency="None",
-            type_buy="None",
-            price_purchase=0,
-            trigger=0
-            ):
-        if type_print == PrintOrders.header:
-            print "%3s %7s %5s %5s" % ("cur", "type", "pur$", "trig")
-        elif type_print == PrintOrders.border:
-            print "-----------------------"
-        elif type_print == PrintOrders.row:
-            print "%3s|%s%7s%s|%5d|%5d" % (currency, Fore.GREEN, type_buy, Fore.RESET, price_purchase, trigger)
-        elif type_print == PrintOrders.none:
-            print "Must include PrintOrders.header|border|row in PrintOrders.buy(args)"
+        print
+
+        # print orders buy
+        for jol in json_orders_list['buy']:
+            if jol['tag'] == "header":
+                print "%3s %7s %5s %5s" % (
+                    jol['product_id'],
+                    jol['type'],
+                    jol['price_buy'],
+                    jol['price']
+                )
+                print "-----------------------"
+            elif jol['tag'] == "row":
+                print "%3s|%s%7s%s|%5d|%5d" % (
+                    jol['product_id'],
+                    Fore.GREEN,
+                    jol['type'],
+                    Fore.RESET,
+                    jol['price_buy'],
+                    jol['price']
+                )
 
 cwOrders = CWCryptoWatch()
 jsonAccounts = cwOrders.gd_accounts()
@@ -48,8 +57,27 @@ jsonMarkets = cwOrders.db_get("/markets", 60)
 
 jsonOrders = cwOrders.gd_orders()
 
-array_buy = []
-array_sell = []
+jsonOrdersList = {
+    "sell": [
+        {
+            "tag": "header",
+            "product_id": "cur",
+            "type": "type",
+            "price_current": "cur$",
+            "price_sell": "sel$",
+            "price": "trig"
+        }
+    ],
+    "buy": [
+        {
+            "tag": "header",
+            "product_id": "cur",
+            "type": "type",
+            "price_buy": "pur$",
+            "price": "trig"
+        }
+    ]
+}
 
 for jo in jsonOrders[0]:
     jsonMarketExchangePairSummary = cwOrders.db_get("/markets/gdax/" + jo['product_id'][0:3].lower() + "usd/summary", 1)
@@ -57,61 +85,51 @@ for jo in jsonOrders[0]:
         price_cur = float(jo['size']) * float(jsonMarketExchangePairSummary['price']['last'])
         if jo['type'] == "limit":
             price_sell = float(jo['size']) * float(jo['price'])
-            array_sell.append([
-                             jo['product_id'][0:3].lower(),
-                             jo['type'],
-                             price_cur,
-                             price_sell,
-                             float(jo['price'])
-                             ])
+            jsonOrdersList['sell'].append(
+                {
+                    "tag": "row",
+                    "product_id": jo['product_id'][0:3].lower(),
+                    "type": jo['type'],
+                    "price_current": price_cur,
+                    "price_sell": price_sell,
+                    "price":  float(jo['price'])
+                }
+            )
         elif jo['type'] == "market":
             price_sell = float(jo['size']) * float(jo['stop_price'])
-            array_sell.append([
-                             jo['product_id'][0:3].lower(),
-                             jo['type'],
-                             price_cur,
-                             price_sell,
-                             float(jo['stop_price'])
-                             ])
+            jsonOrdersList['sell'].append(
+                {
+                    "tag": "row",
+                    "product_id": jo['product_id'][0:3].lower(),
+                    "type": jo['type'],
+                    "price_current": price_cur,
+                    "price_sell": price_sell,
+                    "price": float(jo['stop_price'])
+                }
+            )
 
 for jo in jsonOrders[0]:
     if jo['side'] == "buy":
         if jo['type'] == "limit":
             price_buy = float(jo['size']) * float(jo['price'])
-            array_buy.append([
-                            jo['product_id'][0:3].lower(),
-                            jo['type'],
-                            price_buy,
-                            float(jo['price'])
-                            ])
+            jsonOrdersList['buy'].append(
+                {
+                    "tag": "row",
+                    "product_id": jo['product_id'][0:3].lower(),
+                    "type": jo['type'],
+                    "price_buy": price_buy,
+                    "price": float(jo['price'])
+                }
+            )
         elif jo['type'] == "market":
-            array_buy.append([
-                            jo['product_id'][0:3].lower(),
-                            jo['type'],
-                            float(jo['specified_funds']),
-                            float(jo['stop_price'])
-                            ])
+            jsonOrdersList['buy'].append(
+                {
+                    "tag": "row",
+                    "product_id": jo['product_id'][0:3].lower(),
+                    "type": jo['type'],
+                    "price_buy": float(jo['specified_funds']),
+                    "price": float(jo['stop_price'])
+                }
+            )
 
-printOrders.sell(printOrders.header)
-printOrders.sell(printOrders.border)
-
-for i in array_sell:
-    printOrders.sell(printOrders.row,
-                     i[0],
-                     i[1],
-                     i[2],
-                     i[3],
-                     i[4]
-                     )
-
-print
-printOrders.buy(printOrders.header)
-printOrders.buy(printOrders.border)
-
-for i in array_buy:
-    printOrders.buy(printOrders.row,
-                     i[0],
-                     i[1],
-                     i[2],
-                     i[3]
-                     )
+printOrders.prn(jsonOrdersList)

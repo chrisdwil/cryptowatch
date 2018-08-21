@@ -15,7 +15,7 @@ class PrintOrders:
                     jol['price_sell'],
                     jol['price']
                 )
-                print "-----------------------------"
+                print("-----------------------------")
             elif jol['tag'] == "row":
                 print "%3s|%s%7s%s|%5d|%5d|%5d" % (
                     jol['product_id'],
@@ -37,7 +37,7 @@ class PrintOrders:
                     jol['price_buy'],
                     jol['price']
                 )
-                print "-----------------------"
+                print("-----------------------")
             elif jol['tag'] == "row":
                 print "%3s|%s%7s%s|%5d|%5d" % (
                     jol['product_id'],
@@ -50,7 +50,7 @@ class PrintOrders:
 
 cwOrders = CWCryptoWatch()
 jsonAccounts = cwOrders.gd_accounts()
-printOrders = PrintOrders()
+orderDashboard = PrintOrders()
 jsonMarkets = cwOrders.db_get("/markets", 60)
 
 jsonOrders = cwOrders.gd_orders()
@@ -130,4 +130,4 @@ for jo in jsonOrders[0]:
                 }
             )
 
-printOrders.prn(jsonOrdersList)
+orderDashboard.prn(jsonOrdersList)

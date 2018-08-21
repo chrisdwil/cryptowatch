@@ -6,7 +6,6 @@ class PrintOrders:
 
     def prn(self, json_orders_list):
 
-        # print orders sell
         for jol in json_orders_list['sell']:
             if jol['tag'] == "header":
                 print "%3s %7s %5s %5s %5s" % (
@@ -30,7 +29,6 @@ class PrintOrders:
 
         print
 
-        # print orders buy
         for jol in json_orders_list['buy']:
             if jol['tag'] == "header":
                 print "%3s %7s %5s %5s" % (

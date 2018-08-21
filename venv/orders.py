@@ -13,15 +13,16 @@ class PrintOrders:
              type_print=0,
              currency="None",
              type_sell="None",
+             price_cur=0,
              price_sell=0,
              trigger=0
              ):
         if type_print == PrintOrders.header:
-            print "%3s %7s %5s %5s" % ("cur", "type", "sel$", "trig")
+            print "%3s %7s %5s %5s %5s" % ("cur", "type", "cur$", "sel$", "trig")
         elif type_print == PrintOrders.border:
-            print "-----------------------"
+            print "-----------------------------"
         elif type_print == PrintOrders.row:
-            print "%3s|%s%7s%s|%5d|%5d" % (currency, Fore.RED, type_sell, Fore.RESET, price_sell, trigger)
+            print "%3s|%s%7s%s|%5d|%5d|%5d" % (currency, Fore.RED, type_sell, Fore.RESET, price_cur, price_sell, trigger)
         elif type_print == PrintOrders.none:
             print "Must include PrintOrders.header|border|row in PrintOrders.sell(args)"
 
@@ -51,12 +52,15 @@ array_buy = []
 array_sell = []
 
 for jo in jsonOrders[0]:
+    jsonMarketExchangePairSummary = cwOrders.db_get("/markets/gdax/" + jo['product_id'][0:3].lower() + "usd/summary", 1)
     if jo['side'] == "sell":
+        price_cur = float(jo['size']) * float(jsonMarketExchangePairSummary['price']['last'])
         if jo['type'] == "limit":
             price_sell = float(jo['size']) * float(jo['price'])
             array_sell.append([
                              jo['product_id'][0:3].lower(),
                              jo['type'],
+                             price_cur,
                              price_sell,
                              float(jo['price'])
                              ])
@@ -65,6 +69,7 @@ for jo in jsonOrders[0]:
             array_sell.append([
                              jo['product_id'][0:3].lower(),
                              jo['type'],
+                             price_cur,
                              price_sell,
                              float(jo['stop_price'])
                              ])
@@ -95,7 +100,8 @@ for i in array_sell:
                      i[0],
                      i[1],
                      i[2],
-                     i[3]
+                     i[3],
+                     i[4]
                      )
 
 print

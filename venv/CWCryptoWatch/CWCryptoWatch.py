@@ -491,7 +491,10 @@ class CWCryptoWatch:
                     print(als + ": " + self.alerts_json_data[als]['message'])
 
     def al_trending(self, current_atr_list):
-        atr_change = 0.33
+        if self.config_data['dev']['mode'] == "production":
+            atr_change = 0.33
+        else:
+            atr_change = 0.0000001
 
         previous_alert = self.al_db_get("trending")
 
@@ -506,12 +509,14 @@ class CWCryptoWatch:
                     if jp['pair'] == jc['pair']:
                         if jc['last'] >= jp['last'] + jc['atr'] * atr_change:
                             self.alerts_json_data['trending']['message'] = \
-                                self.alerts_json_data['trending']['message'] + jc['pair'] + "+ "
+                                self.alerts_json_data['trending']['message'] + jc['pair'] + "+" + \
+                                str(round(jc['last'],0)) + " "
                             self.alerts_json_data['trending']['alert'] = True
                             json_pair_list.append(jc)
                         elif jc['last'] <= jp['last'] - jc['atr'] * atr_change:
                             self.alerts_json_data['trending']['message'] = \
-                                self.alerts_json_data['trending']['message'] + jc['pair'] + "- "
+                                self.alerts_json_data['trending']['message'] + jc['pair'] + "-" + \
+                                str(round(jc['last'],0)) + " "
                             json_pair_list.append(jc)
                         else:
                             json_pair_list.append(jp)

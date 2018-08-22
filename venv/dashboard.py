@@ -4,7 +4,7 @@ from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 
 class PrintMarkets:
 
-    json_market_data = {
+    json_data = {
         "balance": 0,
         "market": [
             {
@@ -26,8 +26,7 @@ class PrintMarkets:
     }
 
     def prn(self):
-
-        for jdl in self.json_market_data['market']:
+        for jdl in self.json_data['market']:
             if jdl['tag'] == "header":
                 print("%4s %4s %5s %5s %5s %5s %5s %5s %5s %5s %5s %5s" % (
                     jdl['exchange'],
@@ -45,7 +44,7 @@ class PrintMarkets:
                     )
                 )
                 print("---------------------------- $%10.2f ----------------------------" % (
-                    round(self.json_market_data['balance'], 2)
+                    round(self.json_data['balance'], 2)
                     )
                 )
             elif jdl['tag'] == "row":
@@ -143,10 +142,10 @@ jsonAccounts = cwCurrency.gd_accounts()
 for ja in jsonAccounts:
     if ja['currency'] != "USD":
         jsonMarketExchangePairSummary = cwCurrency.db_get("/markets/gdax/" + ja['currency'].lower() + "usd/summary", 1)
-        marketDashboard.json_market_data['balance'] += float(ja['balance']) * \
+        marketDashboard.json_data['balance'] += float(ja['balance']) * \
                                                        float(jsonMarketExchangePairSummary['price']['last'])
     else:
-        marketDashboard.json_market_data['balance'] += float(ja['balance'])
+        marketDashboard.json_data['balance'] += float(ja['balance'])
 
 for jm in jsonMarkets:
     if (jm['exchange'] in exchangesWatch) & (jm['pair'] in pairWatch):
@@ -163,9 +162,9 @@ for jm in jsonMarkets:
         turtles20 = cwCurrency.db_get_turtles(jsonMarketExchangePair['exchange'],
                                               jsonMarketExchangePair['pair'],
                                               jsonMarketExchangePairSummary['price']['last'],
-                                              marketDashboard.json_market_data['balance']
+                                              marketDashboard.json_data['balance']
                                               )
-        marketDashboard.json_market_data['market'].append(
+        marketDashboard.json_data['market'].append(
             {
                 "tag": "row",
                 "exchange": jsonMarketExchangePair['exchange'][0:4],

@@ -4,7 +4,7 @@ from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 
 class PrintOrders:
 
-    json_order_data = {
+    json_data = {
         "sell": [
             {
                 "tag": "header",
@@ -28,8 +28,7 @@ class PrintOrders:
     }
 
     def prn(self):
-
-        for jol in self.json_order_data['sell']:
+        for jol in self.json_data['sell']:
             if jol['tag'] == "header":
                 print "%3s %7s %5s %5s %5s" % (
                     jol['product_id'],
@@ -52,7 +51,7 @@ class PrintOrders:
 
         print
 
-        for jol in self.json_order_data['buy']:
+        for jol in self.json_data['buy']:
             if jol['tag'] == "header":
                 print "%3s %7s %5s %5s %5s" % (
                     jol['product_id'],
@@ -86,7 +85,7 @@ for jo in jsonOrders[0]:
         price_cur = float(jo['size']) * float(jsonMarketExchangePairSummary['price']['last'])
         if jo['type'] == "limit":
             price_sell = float(jo['size']) * float(jo['price'])
-            orderDashboard.json_order_data['sell'].append(
+            orderDashboard.json_data['sell'].append(
                 {
                     "tag": "row",
                     "product_id": jo['product_id'][0:3].lower(),
@@ -98,7 +97,7 @@ for jo in jsonOrders[0]:
             )
         elif jo['type'] == "market":
             price_sell = float(jo['size']) * float(jo['stop_price'])
-            orderDashboard.json_order_data['sell'].append(
+            orderDashboard.json_data['sell'].append(
                 {
                     "tag": "row",
                     "product_id": jo['product_id'][0:3].lower(),
@@ -115,7 +114,7 @@ for jo in jsonOrders[0]:
         if jo['type'] == "limit":
             price_buy = float(jo['size']) * float(jo['price'])
             unitSize = price_buy / float(jo['price'])
-            orderDashboard.json_order_data['buy'].append(
+            orderDashboard.json_data['buy'].append(
                 {
                     "tag": "row",
                     "product_id": jo['product_id'][0:3].lower(),
@@ -127,7 +126,7 @@ for jo in jsonOrders[0]:
             )
         elif jo['type'] == "market":
             unitSize = float(jo['specified_funds']) / float(jo['stop_price'])
-            orderDashboard.json_order_data['buy'].append(
+            orderDashboard.json_data['buy'].append(
                 {
                     "tag": "row",
                     "product_id": jo['product_id'][0:3].lower(),

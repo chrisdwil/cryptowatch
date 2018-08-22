@@ -31,13 +31,14 @@ class PrintOrders:
     def prn(self):
         for jol in self.json_data['sell']:
             if jol['tag'] == "header":
-                print "%3s %7s %6s %5s %5s %5s" % (
+                print("%3s %7s %6s %5s %5s %5s" % (
                     jol['product_id'],
                     jol['type'],
                     jol['u_size'],
                     jol['price_current'],
                     jol['price_sell'],
                     jol['price']
+                    )
                 )
                 print("------------------------------------")
             elif jol['tag'] == "row":
@@ -45,7 +46,7 @@ class PrintOrders:
                     typecolor = Fore.RED
                 else:
                     typecolor = Fore.GREEN
-                print "%3s|%s%7s%s|%1.4f|%5d|%5d|%5d" % (
+                print("%3s|%s%7s%s|%1.4f|%5d|%5d|%5d" % (
                     jol['product_id'],
                     typecolor,
                     jol['type'],
@@ -54,23 +55,25 @@ class PrintOrders:
                     jol['price_current'],
                     jol['price_sell'],
                     jol['price']
+                    )
                 )
 
         print
 
         for jol in self.json_data['buy']:
             if jol['tag'] == "header":
-                print "%3s %7s %6s %5s %5s %5s" % (
+                print("%3s %7s %6s %5s %5s %5s" % (
                     jol['product_id'],
                     jol['type'],
                     jol['u_size'],
                     "",
                     jol['price_buy'],
                     jol['price']
+                    )
                 )
-                print("------------------------------")
+                print("------------------------------------")
             elif jol['tag'] == "row":
-                print "%3s|%s%7s%s|%1.4f|%5s|%5d|%5d" % (
+                print("%3s|%s%7s%s|%1.4f|%5s|%5d|%5d" % (
                     jol['product_id'],
                     Fore.GREEN,
                     jol['type'],
@@ -79,6 +82,7 @@ class PrintOrders:
                     "",
                     jol['price_buy'],
                     jol['price']
+                    )
                 )
 
 cwOrders = CWCryptoWatch()

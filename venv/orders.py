@@ -10,6 +10,7 @@ class PrintOrders:
                 "tag": "header",
                 "product_id": "cur",
                 "type": "type",
+                "u_size": "size",
                 "price_current": "cur$",
                 "price_sell": "sel$",
                 "price": "trig"
@@ -30,20 +31,26 @@ class PrintOrders:
     def prn(self):
         for jol in self.json_data['sell']:
             if jol['tag'] == "header":
-                print "%3s %7s %5s %5s %5s" % (
+                print "%3s %7s %6s %5s %5s %5s" % (
                     jol['product_id'],
                     jol['type'],
+                    jol['u_size'],
                     jol['price_current'],
                     jol['price_sell'],
                     jol['price']
                 )
-                print("-----------------------------")
+                print("------------------------------------")
             elif jol['tag'] == "row":
-                print "%3s|%s%7s%s|%5d|%5d|%5d" % (
+                if jol['type'] == "market":
+                    typecolor = Fore.RED
+                else:
+                    typecolor = Fore.GREEN
+                print "%3s|%s%7s%s|%1.4f|%5d|%5d|%5d" % (
                     jol['product_id'],
-                    Fore.RED,
+                    typecolor,
                     jol['type'],
                     Fore.RESET,
+                    jol['u_size'],
                     jol['price_current'],
                     jol['price_sell'],
                     jol['price']
@@ -53,21 +60,23 @@ class PrintOrders:
 
         for jol in self.json_data['buy']:
             if jol['tag'] == "header":
-                print "%3s %7s %5s %5s %5s" % (
+                print "%3s %7s %6s %5s %5s %5s" % (
                     jol['product_id'],
                     jol['type'],
                     jol['u_size'],
+                    "",
                     jol['price_buy'],
                     jol['price']
                 )
-                print("-----------------------------")
+                print("------------------------------")
             elif jol['tag'] == "row":
-                print "%3s|%s%7s%s|%1.3f|%5d|%5d" % (
+                print "%3s|%s%7s%s|%1.4f|%5s|%5d|%5d" % (
                     jol['product_id'],
                     Fore.GREEN,
                     jol['type'],
                     Fore.RESET,
                     jol['u_size'],
+                    "",
                     jol['price_buy'],
                     jol['price']
                 )
@@ -90,6 +99,7 @@ for jo in jsonOrders[0]:
                     "tag": "row",
                     "product_id": jo['product_id'][0:3].lower(),
                     "type": jo['type'],
+                    "u_size": float(jo['size']),
                     "price_current": price_cur,
                     "price_sell": price_sell,
                     "price":  float(jo['price'])
@@ -102,6 +112,7 @@ for jo in jsonOrders[0]:
                     "tag": "row",
                     "product_id": jo['product_id'][0:3].lower(),
                     "type": jo['type'],
+                    "u_size": float(jo['size']),
                     "price_current": price_cur,
                     "price_sell": price_sell,
                     "price": float(jo['stop_price'])

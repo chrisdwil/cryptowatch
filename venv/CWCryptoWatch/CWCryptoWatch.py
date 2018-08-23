@@ -252,47 +252,50 @@ class CWCryptoWatch:
         cache_string = '360 minutes'
         url = self.config_data['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
         query = """
-                SELECT high, low, close
+                SELECT array_to_jsonb(array_agg(row_to_json(ohlcResults)))
                 FROM (
-                    SELECT
-                        to_timestamp(CAST(jsonb_array_elements(ohlc_array)->>0 AS INT)) AS ts,
-                        CAST(jsonb_array_elements(ohlc_array)->>1 AS FLOAT) AS open,
-                        CAST(jsonb_array_elements(ohlc_array)->>2 AS FLOAT) AS high,
-                        CAST(jsonb_array_elements(ohlc_array)->>3 AS FLOAT) AS low,
-                        CAST(jsonb_array_elements(ohlc_array)->>4 AS FLOAT) AS close,
-                        CAST(jsonb_array_elements(ohlc_array)->>5 AS FLOAT) AS volume
+                    SELECT *
                     FROM (
-                        SELECT callresult->'result'->'86400' AS ohlc_array
-                        FROM markets
-                        WHERE callurl = %s AND ts >= CURRENT_TIMESTAMP - interval %s
-                        ORDER BY ts DESC LIMIT 1
-                    ) AS ohlc_array
-                ) AS ohlc
-                WHERE ts >= CURRENT_TIMESTAMP - interval %s AND ts <= CURRENT_TIMESTAMP - interval %s
+                        SELECT
+                            to_timestamp(CAST(jsonb_array_elements(ohlc_array)->>0 AS INT)) AS ts,
+                            CAST(jsonb_array_elements(ohlc_array)->>1 AS FLOAT) AS open,
+                            CAST(jsonb_array_elements(ohlc_array)->>2 AS FLOAT) AS high,
+                            CAST(jsonb_array_elements(ohlc_array)->>3 AS FLOAT) AS low,
+                            CAST(jsonb_array_elements(ohlc_array)->>4 AS FLOAT) AS close,
+                            CAST(jsonb_array_elements(ohlc_array)->>5 AS FLOAT) AS volume
+                        FROM (
+                            SELECT callresult->'result'->'86400' AS ohlc_array
+                            FROM markets
+                            WHERE callurl = %s AND ts >= CURRENT_TIMESTAMP - interval %s
+                            ORDER BY ts DESC LIMIT 1
+                        ) AS ohlc_array
+                    ) AS ohlc
+                    WHERE ts >= CURRENT_TIMESTAMP - interval %s AND ts <= CURRENT_TIMESTAMP - interval %s
+                ) as ohlcResults
                 """
 
         self.db_connect()
         cursor_object = self.postgres_object.cursor()
-        cursor_object.execute(query, (url, cache_string, str(days * 2 + 1) + "days", "0 days",))
-        hlc_array = cursor_object.fetchall()
-
+        cursor_object.execute(query, (url, cache_string, str(days * 2 + 1) + " days", "0 days",))
+        json_hlc = cursor_object.fetchone()
+        json_hlc = json_hlc[0]
         self.db_close()
 
         tr_sum = 0
         curr_n = 0
 
-        if len(hlc_array) == days * 2 + 1:
+        if len(json_hlc) == days * 2 + 1:
             for i in range(0, days + 1, 1):
-                tr_sum = tr_sum + max(hlc_array[i][0] - hlc_array[i][1],
-                                      hlc_array[i][0] - hlc_array[i - 1][2],
-                                      hlc_array[i - 1][2] - hlc_array[i][1]
+                tr_sum = tr_sum + max(json_hlc[i]['high'] - json_hlc[i]['low'],
+                                      json_hlc[i]['high'] - json_hlc[i - 1]['close'],
+                                      json_hlc[i - 1]['close'] - json_hlc[i]['low']
                                       )
 
             prev_n = tr_sum / (days + 1)
             for i in range(days + 1, days * 2 + 1, 1):
-                tr = max(hlc_array[i][0] - hlc_array[i][1],
-                         hlc_array[i][0] - hlc_array[i - 1][2],
-                         hlc_array[i - 1][2] - hlc_array[i][1]
+                tr = max(json_hlc[i]['high'] - json_hlc[i]['low'],
+                         json_hlc[i]['high'] - json_hlc[i - 1]['close'],
+                         json_hlc[i - 1]['close'] - json_hlc[i]['low']
                          )
                 curr_n = ((days - 1) * prev_n + tr) / days
 
@@ -301,11 +304,19 @@ class CWCryptoWatch:
 
             unit_size = (balance * .01) / (curr_n * dpp)
             unit_size_currency = unit_size * balance
-            result_array = [curr_n, unit_size, unit_size_currency]
+            json_result = {
+                "atr": curr_n,
+                "u_size": unit_size,
+                "u_size_dollars": unit_size_currency
+            }
         else:
-            result_array = [0, 0, 0]
+            json_result = {
+                "atr": 0,
+                "u_size:": 0,
+                "u_size_dollars": 0
+            }
 
-        return result_array
+        return json_result
 
     def db_get_rsi(self, exchange, pair, days_rsi, days_weight):
         cache_string = "360 minutes"

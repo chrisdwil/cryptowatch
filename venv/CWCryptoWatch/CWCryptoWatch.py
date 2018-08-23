@@ -350,31 +350,6 @@ class CWCryptoWatch:
         json_rsi = cursor_object.fetchone()[0]
         self.db_close()
 
-        # test array, results should look like:
-        # http://cns.bu.edu/~gsc/CN710/fincast/Technical%20_indicators/Relative%20Strength%20Index%20(RSI).htm
-        # close_array = [
-        #     [46.1250, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [47.1250, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [46.4375, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [46.9375, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [44.9375, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [44.2500, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [44.6250, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [45.7500, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [47.8125, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [47.5625, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [47.0000, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [44.5625, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [46.3125, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [47.6875, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [46.6875, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [45.6875, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [43.0625, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [43.5625, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [44.8750, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [43.6875, 0, 0, 0, 0, 0, 0, 0, 0]
-        # ]
-
         for i in range(1, len(json_rsi), 1):
             json_rsi[i]['change'] = json_rsi[i]['close'] - json_rsi[i - 1]['close']
             if json_rsi[i]['change'] >= 0:
@@ -401,18 +376,6 @@ class CWCryptoWatch:
                                     (((json_rsi[i-1]['avg_loss'] * 13) + json_rsi[i]['loss']) / days_rsi)
                 json_rsi[i]['rsi'] = 100 - (100 / (1 + json_rsi[i]['rs']))
 
-            # if you ever need to print the chart and manually calculate rsi
-            # print "%3i %10.4f %10.4f %10.4f %10.4f %10.4f %10.4f %10.4f %10.3f" % (i,
-            #                                                                           close_array[i][0],
-            #                                                                           close_array[i][1],
-            #                                                                           close_array[i][2],
-            #                                                                           close_array[i][3],
-            #                                                                           close_array[i][4],
-            #                                                                           close_array[i][5],
-            #                                                                           close_array[i][6],
-            #                                                                           close_array[i][7],
-            #                                                                           close_array[i][8]
-            #                                                                           )
         return json_rsi[len(json_rsi)-1]['rsi']
 
     def cw_status(self):

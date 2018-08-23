@@ -252,7 +252,7 @@ class CWCryptoWatch:
         cache_string = '360 minutes'
         url = self.config_data['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
         query = """
-                SELECT array_to_jsonb(array_agg(row_to_json(ohlcResults)))
+                SELECT array_to_json(array_agg(row_to_json(ohlcResults)))
                 FROM (
                     SELECT *
                     FROM (
@@ -277,8 +277,7 @@ class CWCryptoWatch:
         self.db_connect()
         cursor_object = self.postgres_object.cursor()
         cursor_object.execute(query, (url, cache_string, str(days * 2 + 1) + " days", "0 days",))
-        json_hlc = cursor_object.fetchone()
-        json_hlc = json_hlc[0]
+        json_hlc = cursor_object.fetchone()[0]
         self.db_close()
 
         tr_sum = 0
@@ -323,32 +322,33 @@ class CWCryptoWatch:
         string_days_weight = str(days_weight) + " days"
         url = self.config_data['cryptowatch']['url'] + "/markets/" + exchange + "/" + pair + "/ohlc"
         query = """
-                SELECT close, 0, 0, 0, 0, 0, 0, 0
+                SELECT array_to_json(array_agg(row_to_json(ohlcResults)))
                 FROM (
-                    SELECT
-                        to_timestamp(CAST(jsonb_array_elements(ohlc_array)->>0 AS INT)) AS ts,
-                        CAST(jsonb_array_elements(ohlc_array)->>1 AS FLOAT) AS open,
-                        CAST(jsonb_array_elements(ohlc_array)->>2 AS FLOAT) AS high,
-                        CAST(jsonb_array_elements(ohlc_array)->>3 AS FLOAT) AS low,
-                        CAST(jsonb_array_elements(ohlc_array)->>4 AS FLOAT) AS close,
-                        CAST(jsonb_array_elements(ohlc_array)->>5 AS FLOAT) AS volume
+                    SELECT close, 0 as change, 0 as gain, 0 as loss, 0 as avg_gain, 0 as avg_loss, 0 as rs, 0 as rsi
                     FROM (
-                        SELECT callresult->'result'->'86400' AS ohlc_array
-                        FROM markets
-                        WHERE callurl = %s AND ts >= CURRENT_TIMESTAMP - interval %s
-                        ORDER BY ts DESC LIMIT 1
-                        ) AS ohlc_array
-                    ) AS ohlc
-                WHERE ts >= CURRENT_TIMESTAMP - interval %s AND ts <= CURRENT_TIMESTAMP - interval %s
+                        SELECT
+                            to_timestamp(CAST(jsonb_array_elements(ohlc_array)->>0 AS INT)) AS ts,
+                            CAST(jsonb_array_elements(ohlc_array)->>1 AS FLOAT) AS open,
+                            CAST(jsonb_array_elements(ohlc_array)->>2 AS FLOAT) AS high,
+                            CAST(jsonb_array_elements(ohlc_array)->>3 AS FLOAT) AS low,
+                            CAST(jsonb_array_elements(ohlc_array)->>4 AS FLOAT) AS close,
+                            CAST(jsonb_array_elements(ohlc_array)->>5 AS FLOAT) AS volume
+                        FROM (
+                            SELECT callresult->'result'->'86400' AS ohlc_array
+                            FROM markets
+                            WHERE callurl = %s AND ts >= CURRENT_TIMESTAMP - interval %s
+                            ORDER BY ts DESC LIMIT 1
+                            ) AS ohlc_array
+                        ) AS ohlc
+                    WHERE ts >= CURRENT_TIMESTAMP - interval %s AND ts <= CURRENT_TIMESTAMP - interval %s
+                ) as ohlcResults
                 """
 
         self.db_connect()
         cursor_object = self.postgres_object.cursor()
         cursor_object.execute(query, (url, cache_string, string_days_weight, "0 days",))
-        close_array = cursor_object.fetchall()
+        json_rsi = cursor_object.fetchone()[0]
         self.db_close()
-
-        close_array = [list(row) for row in close_array]
 
         # test array, results should look like:
         # http://cns.bu.edu/~gsc/CN710/fincast/Technical%20_indicators/Relative%20Strength%20Index%20(RSI).htm
@@ -375,31 +375,31 @@ class CWCryptoWatch:
         #     [43.6875, 0, 0, 0, 0, 0, 0, 0, 0]
         # ]
 
-        for i in range(1, len(close_array), 1):
-            close_array[i][1] = close_array[i][0] - close_array[i - 1][0]
-            if close_array[i][1] >= 0:
-                close_array[i][2] = abs(close_array[i][1])
+        for i in range(1, len(json_rsi), 1):
+            json_rsi[i]['change'] = json_rsi[i]['close'] - json_rsi[i - 1]['close']
+            if json_rsi[i]['change'] >= 0:
+                json_rsi[i]['gain'] = abs(json_rsi[i]['change'])
             else:
-                close_array[i][3] = abs(close_array[i][1])
+                json_rsi[i]['loss'] = abs(json_rsi[i]['change'])
 
-        for i in range(1, len(close_array), 1):
+        for i in range(1, len(json_rsi), 1):
             if i == days_rsi:
                 sum_adva = 0
                 sum_decl = 0
                 for j in range(i-days_rsi, days_rsi+1, 1):
-                    sum_adva += close_array[j][2]
-                    sum_decl += close_array[j][3]
-                close_array[i][4] = sum_adva / days_rsi
-                close_array[i][5] = sum_decl / days_rsi
-                close_array[i][6] = close_array[i][4] / close_array[i][5]
-                close_array[i][7] = 100 - (100 / (1 + close_array[i][6]))
+                    sum_adva += json_rsi[j]['gain']
+                    sum_decl += json_rsi[j]['loss']
+                json_rsi[i]['avg_gain'] = sum_adva / days_rsi
+                json_rsi[i]['avg_loss'] = sum_decl / days_rsi
+                json_rsi[i]['rs'] = json_rsi[i]['avg_gain'] / json_rsi[i]['avg_loss']
+                json_rsi[i]['rsi'] = 100 - (100 / (1 + json_rsi[i]['rs']))
 
             if i > days_rsi:
-                close_array[i][4] = ((close_array[i-1][4] * 13) + close_array[i][2]) / days_rsi
-                close_array[i][5] = ((close_array[i-1][5] * 13) + close_array[i][3]) / days_rsi
-                close_array[i][6] = (((close_array[i-1][4] * 13) + close_array[i][2]) / days_rsi) / \
-                                    (((close_array[i-1][5] * 13) + close_array[i][3]) / days_rsi)
-                close_array[i][7] = 100 - (100 / (1 + close_array[i][6]))
+                json_rsi[i]['avg_gain'] = ((json_rsi[i-1]['avg_gain'] * 13) + json_rsi[i]['gain']) / days_rsi
+                json_rsi[i]['avg_loss'] = ((json_rsi[i-1]['avg_loss'] * 13) + json_rsi[i]['loss']) / days_rsi
+                json_rsi[i]['rs'] = (((json_rsi[i-1]['avg_gain'] * 13) + json_rsi[i]['gain']) / days_rsi) / \
+                                    (((json_rsi[i-1]['avg_loss'] * 13) + json_rsi[i]['loss']) / days_rsi)
+                json_rsi[i]['rsi'] = 100 - (100 / (1 + json_rsi[i]['rs']))
 
             # if you ever need to print the chart and manually calculate rsi
             # print "%3i %10.4f %10.4f %10.4f %10.4f %10.4f %10.4f %10.4f %10.3f" % (i,
@@ -413,7 +413,7 @@ class CWCryptoWatch:
             #                                                                           close_array[i][7],
             #                                                                           close_array[i][8]
             #                                                                           )
-        return close_array[len(close_array)-1][7]
+        return json_rsi[len(json_rsi)-1]['rsi']
 
     def cw_status(self):
         requests.get(

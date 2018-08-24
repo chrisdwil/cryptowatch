@@ -206,11 +206,11 @@ class CWCryptoWatch:
         result = cursor_object.fetchall()
 
         for close in result:
-            curema = (close[0] - prevema) * ema_weight + prevema
-            prevema = curema
+            ema_curr = (close[0] - prevema) * ema_weight + prevema
+            ema_prev = ema_curr
 
         self.db_close()
-        return curema
+        return ema_curr
 
     def db_get_hl(self, exchange, pair, days):
         cache_string = '360 minutes'
@@ -359,13 +359,13 @@ class CWCryptoWatch:
 
         for i in range(1, len(json_rsi), 1):
             if i == days_rsi:
-                sum_adva = 0
-                sum_decl = 0
+                sum_gain = 0
+                sum_loss = 0
                 for j in range(i-days_rsi, days_rsi+1, 1):
-                    sum_adva += json_rsi[j]['gain']
-                    sum_decl += json_rsi[j]['loss']
-                json_rsi[i]['avg_gain'] = sum_adva / days_rsi
-                json_rsi[i]['avg_loss'] = sum_decl / days_rsi
+                    sum_gain += json_rsi[j]['gain']
+                    sum_loss += json_rsi[j]['loss']
+                json_rsi[i]['avg_gain'] = sum_gain / days_rsi
+                json_rsi[i]['avg_loss'] = sum_loss / days_rsi
                 json_rsi[i]['rs'] = json_rsi[i]['avg_gain'] / json_rsi[i]['avg_loss']
                 json_rsi[i]['rsi'] = 100 - (100 / (1 + json_rsi[i]['rs']))
 

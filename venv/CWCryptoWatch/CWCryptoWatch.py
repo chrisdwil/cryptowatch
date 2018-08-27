@@ -199,14 +199,14 @@ class CWCryptoWatch:
         cursor_object = self.postgres_object.cursor()
         cursor_object.execute(querysma, (url, cache_string, str(days * 2) + " days", str(days) + " days",))
         result = cursor_object.fetchall()
-        prevema = result[0][0]
+        ema_prev = result[0][0]
 
         query20dayclose = re.sub("columnname", "close", query)
         cursor_object.execute(query20dayclose, (url, cache_string, str(days) + " days", "0 days",))
         result = cursor_object.fetchall()
 
         for close in result:
-            ema_curr = (close[0] - prevema) * ema_weight + prevema
+            ema_curr = (close[0] - ema_prev) * ema_weight + ema_prev
             ema_prev = ema_curr
 
         self.db_close()

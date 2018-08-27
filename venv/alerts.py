@@ -37,7 +37,7 @@ for jm in jsonMarkets:
                                               jsonMarketExchangePair['pair'],
                                               jsonMarketExchangePairSummary['price']['last'],
                                               totalBalance
-                                              )[0]
+                                              )['atr']
         }
         jsonPairList.append(jsonPairTrending)
 

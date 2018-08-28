@@ -1,4 +1,3 @@
-import json
 from colorama import Fore, Back, Style
 from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 
@@ -127,5 +126,8 @@ for jm in jsonMarkets:
                     }
                 }
             )
+            # insert math here to calculate sums of stop, atr1, atr2, etc, insert them into a json footer variable
+            # at end of for loop
+        # insert footer of summarized results
 
 turtlesDashboard.prn()

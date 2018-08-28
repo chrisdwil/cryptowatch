@@ -1,3 +1,4 @@
+import json
 from colorama import Fore, Back, Style
 from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 
@@ -5,37 +6,51 @@ from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 class PrintTurtles:
     json_data = {
         "balance": 0,
-        "turtles": [
-            {
-                "tag": "header",
-                "product_id": "cur",
-                "price_purchase": "pur$",
-                "fee": 0,
-                "u_size": "size",
-                "price_sell": [
-                    {
-                        "stop_price": "stop",
-                        "atr_1": "atr1",
-                        "atr_2": "atr2",
-                        "atr_3": "atr3",
-                        "atr_4": "atr4",
-                        "high_20": "h20",
-                        "high_55": "h55",
-                        "high_100": "h100",
-                        "high_180": "h180",
-                        "high_365": "h1y",
-                        "sma_50": "s50",
-                        "ema_20": "e20"
-                    }
-                ]
-            }
-        ]
+        "turtles": []
     }
 
     def prn(self):
         #print(json.dumps(self.json_data, sort_keys=True, indent=4))
-        for td in self.json_data['turtles']:
-            print td['price_sell']
+        for jt in self.json_data['turtles']:
+            for jps in jt['price_buy']:
+                if jps['tag'] == "header":
+                    print("%6s %6s %6s %6s %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d" % (
+                        jps['price_purchase'],
+                        jt['u_size'],
+                        jps['stop_price_half'],
+                        jps['stop_price_third'],
+                        jps['atr_1'],
+                        jps['atr_2'],
+                        jps['atr_3'],
+                        jps['atr_4'],
+                        jps['high_20'],
+                        jps['high_55'],
+                        jps['high_100'],
+                        jps['high_180'],
+                        jps['high_365'],
+                        jps['sma_50'],
+                        jps['ema_20']
+                        )
+                    )
+                elif jps['tag'] == "row":
+                    print("%6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d" % (
+                        jps['price_purchase'],
+                        jt['u_size'],
+                        jps['stop_price_half'],
+                        jps['stop_price_third'],
+                        jps['atr_1'],
+                        jps['atr_2'],
+                        jps['atr_3'],
+                        jps['atr_4'],
+                        jps['high_20'],
+                        jps['high_55'],
+                        jps['high_100'],
+                        jps['high_180'],
+                        jps['high_365'],
+                        jps['sma_50'],
+                        jps['ema_20']
+                        )
+                    )
 
 exchangesWatch = ["gdax"]
 pairWatch = ["btcusd", "bchusd", "ethusd", "ltcusd"]
@@ -55,6 +70,7 @@ for ja in jsonAccounts:
     else:
         turtlesDashboard.json_data['balance'] += float(ja['balance'])
 
+turtlesIndex=0
 for jm in jsonMarkets:
     if (jm['exchange'] in exchangesWatch) & (jm['pair'] in jsonMarketsTurtles):
         jsonMarketExchangePair = cwTurtles.db_get(jm['route'], 60)
@@ -93,42 +109,74 @@ for jm in jsonMarkets:
             turtlesDashboard.json_data['balance']
         )
 
+        turtlesDashboard.json_data['turtles'].append(
+            {
+                "product_id": "cur",
+                "price_start": "strt$",
+                "u_size": "size$",
+                "price_buy": [
+                    {
+                        "tag": "header",
+                        "price_purchase": "pur$",
+                        "stop_price_half": "stop.5",
+                        "stop_price_third": "stop.33",
+                        "atr_1": jsonMarketExchangePairSummary['price']['last'] + turtles20['atr'],
+                        "atr_2": jsonMarketExchangePairSummary['price']['last'] + turtles20['atr'] * 2,
+                        "atr_3": jsonMarketExchangePairSummary['price']['last'] + turtles20['atr'] * 3,
+                        "atr_4": jsonMarketExchangePairSummary['price']['last'] + turtles20['atr'] * 4,
+                        "high_20": hl20['high'],
+                        "high_55": hl55['high'],
+                        "high_100": hl100['high'],
+                        "high_180": hl180['high'],
+                        "high_365": hl365['high'],
+                        "sma_50": cwTurtles.db_get_sma(
+                                    jsonMarketExchangePair['exchange'],
+                                    jsonMarketExchangePair['pair'],
+                                    50
+                                ),
+                        "ema_20": cwTurtles.db_get_ema(
+                                    jsonMarketExchangePair['exchange'],
+                                    jsonMarketExchangePair['pair'],
+                                    20
+                                )
+                    }
+                ]
+            }
+        )
+
         for i in range(0, 4, 1):
             price_purchase = jsonMarketExchangePairSummary['price']['last'] + float(turtles20['atr'] * i * 0.5)
-            turtlesDashboard.json_data['turtles'].append(
+            u_size = turtles20['u_size_dollars'] / price_purchase
+            turtlesDashboard.json_data['turtles'][turtlesIndex]['price_buy'].append(
                 {
-                "tag": "row",
-                "product_id": jsonMarketExchangePair['pair'][0:3],
-                "price_start": jsonMarketExchangePairSummary['price']['last'],
-                "price_purchase": price_purchase,
-                "fee": 0.997,
-                "u_size": turtles20['u_size'],
-                "price_sell": {
-                    "stop_price": price_purchase - turtles20['atr']/3,
-                    "atr_1": price_purchase + turtles20['atr'],
-                    "atr_2": price_purchase + turtles20['atr'] * 2,
-                    "atr_3": price_purchase + turtles20['atr'] * 3,
-                    "atr_4": price_purchase + turtles20['atr'] * 2,
-                    "high_20": hl20['high'],
-                    "high_55": hl55['high'],
-                    "high_100": hl100['high'],
-                    "high_180": hl180['high'],
-                    "high_365": hl365['high'],
-                    "sma_50": cwTurtles.db_get_sma(
+                    "tag": "row",
+                    "price_purchase": price_purchase,
+                    "stop_price_half": u_size * (price_purchase - turtles20['atr']/2),
+                    "stop_price_third": u_size * (price_purchase - turtles20['atr']/3),
+                    "atr_1": u_size * (price_purchase + turtles20['atr']),
+                    "atr_2": u_size * (price_purchase + turtles20['atr'] * 2),
+                    "atr_3": u_size * (price_purchase + turtles20['atr'] * 3),
+                    "atr_4": u_size * (price_purchase + turtles20['atr'] * 4),
+                    "high_20": u_size * hl20['high'],
+                    "high_55": u_size * hl55['high'],
+                    "high_100": u_size * hl100['high'],
+                    "high_180": u_size * hl180['high'],
+                    "high_365": u_size * hl365['high'],
+                    "sma_50": u_size * cwTurtles.db_get_sma(
                         jsonMarketExchangePair['exchange'],
                         jsonMarketExchangePair['pair'],
                         50
                     ),
-                    "ema_20": cwTurtles.db_get_ema(
+                    "ema_20": u_size * cwTurtles.db_get_ema(
                         jsonMarketExchangePair['exchange'],
                         jsonMarketExchangePair['pair'],
                         20
                     )
-                    }
                 }
             )
             # insert math here to calculate sums of stop, atr1, atr2, etc, insert them into a json footer variable
             # at end of for loop
+        turtlesIndex += 1
         # insert footer of summarized results
 
 turtlesDashboard.prn()

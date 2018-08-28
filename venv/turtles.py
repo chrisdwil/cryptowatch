@@ -99,6 +99,7 @@ for jm in jsonMarkets:
                 {
                 "tag": "row",
                 "product_id": jsonMarketExchangePair['pair'][0:3],
+                "price_start": jsonMarketExchangePairSummary['price']['last'],
                 "price_purchase": price_purchase,
                 "fee": 0.997,
                 "u_size": turtles20['u_size'],

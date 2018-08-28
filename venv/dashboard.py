@@ -153,17 +153,22 @@ for jm in jsonMarkets:
         jsonMarketExchangePairSummary = cwCurrency.db_get(jsonMarketExchangePair['routes']['summary'], 1)
         jsonMarketExchangeOHLC = cwCurrency.db_get(jsonMarketExchangePair['routes']['ohlc'], 300)
 
-        hl55 = cwCurrency.db_get_hl(jsonMarketExchangePair['exchange'],
-                                    jsonMarketExchangePair['pair'],
-                                    55)
-        hl20 = cwCurrency.db_get_hl(jsonMarketExchangePair['exchange'],
-                                    jsonMarketExchangePair['pair'],
-                                    20)
-        turtles20 = cwCurrency.db_get_turtles(jsonMarketExchangePair['exchange'],
-                                              jsonMarketExchangePair['pair'],
-                                              jsonMarketExchangePairSummary['price']['last'],
-                                              marketDashboard.json_data['balance']
-                                              )
+        hl55 = cwCurrency.db_get_hl(
+            jsonMarketExchangePair['exchange'],
+            jsonMarketExchangePair['pair'],
+            55
+        )
+        hl20 = cwCurrency.db_get_hl(
+            jsonMarketExchangePair['exchange'],
+            jsonMarketExchangePair['pair'],
+            20
+        )
+        turtles20 = cwCurrency.db_get_turtles(
+            jsonMarketExchangePair['exchange'],
+            jsonMarketExchangePair['pair'],
+            jsonMarketExchangePairSummary['price']['last'],
+            marketDashboard.json_data['balance']
+        )
         marketDashboard.json_data['market'].append(
             {
                 "tag": "row",
@@ -172,17 +177,22 @@ for jm in jsonMarkets:
                 "u_size": turtles20['u_size_dollars'],
                 "atr": turtles20['atr'],
                 "last": jsonMarketExchangePairSummary['price']['last'],
-                "rsi": cwCurrency.db_get_rsi(jsonMarketExchangePair['exchange'],
-                                      jsonMarketExchangePair['pair'],
-                                      14,
-                                      33
-                                      ),
-                "sma_50": cwCurrency.db_get_sma(jsonMarketExchangePair['exchange'],
-                                      jsonMarketExchangePair['pair'],
-                                      50),
-                "ema_20": cwCurrency.db_get_ema(jsonMarketExchangePair['exchange'],
-                                      jsonMarketExchangePair['pair'],
-                                      20),
+                "rsi": cwCurrency.db_get_rsi(
+                    jsonMarketExchangePair['exchange'],
+                    jsonMarketExchangePair['pair'],
+                    14,
+                    33
+                ),
+                "sma_50": cwCurrency.db_get_sma(
+                    jsonMarketExchangePair['exchange'],
+                    jsonMarketExchangePair['pair'],
+                    50
+                ),
+                "ema_20": cwCurrency.db_get_ema(
+                    jsonMarketExchangePair['exchange'],
+                    jsonMarketExchangePair['pair'],
+                    20
+                ),
                 "low_55": hl55['low'],
                 "low_20": hl20['low'],
                 "high_20": hl20['high'],

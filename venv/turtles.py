@@ -14,7 +14,7 @@ class PrintTurtles:
         for jt in self.json_data['turtles']:
             for jps in jt['price_buy']:
                 if jps['tag'] == "header":
-                    print("%6s %6s %6s %6s %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d" % (
+                    print("%6s|%6s|%6s|%6s|a1 %5d|a2 %5d|a3 %5d|a4 %5d|h20 %5d|h55 %5d|h100 %5d|h180 %5d|h1y %5d|s50 %5d|e20 %5d" % (
                         jps['price_purchase'],
                         jps['u_size'],
                         jps['stop_price_half'],
@@ -33,7 +33,7 @@ class PrintTurtles:
                         )
                     )
                 elif jps['tag'] == "row":
-                    print("%6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d" % (
+                    print("%6d|%6d|%6d|%6d|%8d|%8d|%8d|%8d|%9d|%9d|%10d|%10d|%9d|%9d|%9d" % (
                         jps['price_purchase'],
                         jps['u_size'],
                         jps['stop_price_half'],
@@ -51,6 +51,7 @@ class PrintTurtles:
                         jps['ema_20']
                         )
                     )
+            print
 
 exchangesWatch = ["gdax"]
 pairWatch = ["btcusd", "bchusd", "ethusd", "ltcusd"]
@@ -60,7 +61,7 @@ jsonAccounts = cwTurtles.gd_accounts()
 turtlesDashboard = PrintTurtles()
 jsonMarkets = cwTurtles.db_get("/markets", 60)
 
-jsonMarketsTurtles = [ "btcusd" ]
+jsonMarketsTurtles = [ "btcusd", "ethusd" ]
 
 for ja in jsonAccounts:
     if ja['currency'] != "USD":
@@ -72,7 +73,9 @@ for ja in jsonAccounts:
 
 turtlesIndex=0
 for jm in jsonMarkets:
+    price_start = 0
     if (jm['exchange'] in exchangesWatch) & (jm['pair'] in jsonMarketsTurtles):
+        price_start = input("What price do you want to start with for " + jm['pair'] + ": ")
         jsonMarketExchangePair = cwTurtles.db_get(jm['route'], 60)
         jsonMarketExchangePairSummary = cwTurtles.db_get(jsonMarketExchangePair['routes']['summary'], 1)
         jsonMarketExchangeOHLC = cwTurtles.db_get(jsonMarketExchangePair['routes']['ohlc'], 300)
@@ -112,18 +115,18 @@ for jm in jsonMarkets:
         turtlesDashboard.json_data['turtles'].append(
             {
                 "product_id": "cur",
-                "price_start": "strt$",
+                "price_start": price_start,
                 "price_buy": [
                     {
                         "tag": "header",
                         "price_purchase": "pur$",
                         "u_size": "size$",
                         "stop_price_half": "stop.5",
-                        "stop_price_third": "stop.33",
-                        "atr_1": jsonMarketExchangePairSummary['price']['last'] + turtles20['atr'],
-                        "atr_2": jsonMarketExchangePairSummary['price']['last'] + turtles20['atr'] * 2,
-                        "atr_3": jsonMarketExchangePairSummary['price']['last'] + turtles20['atr'] * 3,
-                        "atr_4": jsonMarketExchangePairSummary['price']['last'] + turtles20['atr'] * 4,
+                        "stop_price_third": "stop.3",
+                        "atr_1": price_start + (turtles20['atr'] * 0.5),
+                        "atr_2": price_start + (turtles20['atr'] * 1.0),
+                        "atr_3": price_start + (turtles20['atr'] * 1.5),
+                        "atr_4": price_start + (turtles20['atr'] * 2.0),
                         "high_20": hl20['high'],
                         "high_55": hl55['high'],
                         "high_100": hl100['high'],
@@ -145,19 +148,19 @@ for jm in jsonMarkets:
         )
 
         for i in range(0, 4, 1):
-            price_purchase = jsonMarketExchangePairSummary['price']['last'] + float(turtles20['atr'] * i * 0.5)
+            price_purchase = price_start + float(turtles20['atr'] * i * 0.5)
             u_size = turtles20['u_size_dollars'] / price_purchase
             turtlesDashboard.json_data['turtles'][turtlesIndex]['price_buy'].append(
                 {
                     "tag": "row",
                     "price_purchase": price_purchase,
                     "u_size": turtles20['u_size_dollars'],
-                    "stop_price_half": u_size * (price_purchase - turtles20['atr']/2),
-                    "stop_price_third": u_size * (price_purchase - turtles20['atr']/3),
-                    "atr_1": u_size * (price_purchase + turtles20['atr']),
-                    "atr_2": u_size * (price_purchase + turtles20['atr'] * 2),
-                    "atr_3": u_size * (price_purchase + turtles20['atr'] * 3),
-                    "atr_4": u_size * (price_purchase + turtles20['atr'] * 4),
+                    "stop_price_half": price_purchase - turtles20['atr'] * 0.5,
+                    "stop_price_third": price_purchase - turtles20['atr'] * 0.33,
+                    "atr_1": u_size * (price_start + turtles20['atr'] * 0.5),
+                    "atr_2": u_size * (price_start + turtles20['atr'] * 1.0),
+                    "atr_3": u_size * (price_start + turtles20['atr'] * 1.5),
+                    "atr_4": u_size * (price_start + turtles20['atr'] * 2.0),
                     "high_20": u_size * hl20['high'],
                     "high_55": u_size * hl55['high'],
                     "high_100": u_size * hl100['high'],

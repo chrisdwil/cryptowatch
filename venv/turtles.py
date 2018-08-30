@@ -1,4 +1,3 @@
-import json
 from colorama import Fore, Back, Style
 from CWCryptoWatch.CWCryptoWatch import CWCryptoWatch
 
@@ -10,7 +9,6 @@ class PrintTurtles:
     }
 
     def prn(self):
-        #print(json.dumps(self.json_data, sort_keys=True, indent=4))
         for jt in self.json_data['turtles']:
             for jps in jt['price_buy']:
                 if jps['tag'] == "header":

@@ -43,6 +43,9 @@ class CWCryptoWatch:
                         }
         self.log("Successfully initialized class and loaded configuration file.")
 
+    def pp_json(self, json_object):
+        print(json.dumps(json_object, sort_keys=True, indent=4))
+
     def log(self, log_string):
         lfh = open(self.config_data['dev']['log'], "a+")
         lfh.write(datetime.now().isoformat() + " - " + log_string + "\n")

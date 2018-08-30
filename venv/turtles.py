@@ -16,7 +16,7 @@ class PrintTurtles:
                 if jps['tag'] == "header":
                     print("%6s %6s %6s %6s %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d" % (
                         jps['price_purchase'],
-                        jt['u_size'],
+                        jps['u_size'],
                         jps['stop_price_half'],
                         jps['stop_price_third'],
                         jps['atr_1'],
@@ -35,7 +35,7 @@ class PrintTurtles:
                 elif jps['tag'] == "row":
                     print("%6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d %6d" % (
                         jps['price_purchase'],
-                        jt['u_size'],
+                        jps['u_size'],
                         jps['stop_price_half'],
                         jps['stop_price_third'],
                         jps['atr_1'],
@@ -113,11 +113,11 @@ for jm in jsonMarkets:
             {
                 "product_id": "cur",
                 "price_start": "strt$",
-                "u_size": "size$",
                 "price_buy": [
                     {
                         "tag": "header",
                         "price_purchase": "pur$",
+                        "u_size": "size$",
                         "stop_price_half": "stop.5",
                         "stop_price_third": "stop.33",
                         "atr_1": jsonMarketExchangePairSummary['price']['last'] + turtles20['atr'],
@@ -151,6 +151,7 @@ for jm in jsonMarkets:
                 {
                     "tag": "row",
                     "price_purchase": price_purchase,
+                    "u_size": turtles20['u_size_dollars'],
                     "stop_price_half": u_size * (price_purchase - turtles20['atr']/2),
                     "stop_price_third": u_size * (price_purchase - turtles20['atr']/3),
                     "atr_1": u_size * (price_purchase + turtles20['atr']),

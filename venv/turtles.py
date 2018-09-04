@@ -12,8 +12,9 @@ class PrintTurtles:
         for jt in self.json_data['turtles']:
             for jps in jt['price_buy']:
                 if jps['tag'] == "header":
-                    print("%6s|%6s|%6s|%6s|a1 %5d|a2 %5d|a3 %5d|a4 %5d|h20 %5d|h55 %5d|h100 %5d|h180 %5d|h1y %5d|s50 %5d|e20 %5d" % (
+                    print("%6s|%6s|%6s|%6s|%6s|a1 %5d|a2 %5d|a3 %5d|a4 %5d|h20 %5d|h55 %5d|h100 %5d|h180 %5d|h1y %5d|s50 %5d|e20 %5d" % (
                         jps['price_purchase'],
+                        jps['u_size_$'],
                         jps['u_size'],
                         jps['stop_price_half'],
                         jps['stop_price_third'],
@@ -31,8 +32,9 @@ class PrintTurtles:
                         )
                     )
                 elif jps['tag'] == "row":
-                    print("%6d|%6d|%6d|%6d|%8d|%8d|%8d|%8d|%9d|%9d|%10d|%10d|%9d|%9d|%9d" % (
+                    print("%6d|%6d|%1.4f|%6d|%6d|%8d|%8d|%8d|%8d|%9d|%9d|%10d|%10d|%9d|%9d|%9d" % (
                         jps['price_purchase'],
+                        jps['u_size_$'],
                         jps['u_size'],
                         jps['stop_price_half'],
                         jps['stop_price_third'],
@@ -118,7 +120,8 @@ for jm in jsonMarkets:
                     {
                         "tag": "header",
                         "price_purchase": "pur$",
-                        "u_size": "size$",
+                        "u_size_$": "size$",
+                        "u_size": "size",
                         "stop_price_half": "stop.5",
                         "stop_price_third": "stop.3",
                         "atr_1": price_start + (turtles20['atr'] * 0.5),
@@ -152,7 +155,8 @@ for jm in jsonMarkets:
                 {
                     "tag": "row",
                     "price_purchase": price_purchase,
-                    "u_size": turtles20['u_size_dollars'],
+                    "u_size_$": turtles20['u_size_dollars'],
+                    "u_size": u_size,
                     "stop_price_half": price_purchase - turtles20['atr'] * 0.5,
                     "stop_price_third": price_purchase - turtles20['atr'] * 0.33,
                     "atr_1": u_size * (price_start + turtles20['atr'] * 0.5),
